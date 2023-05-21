@@ -3,7 +3,7 @@ Official Python interface for JOY OF PROGRAMMING. More info about the game at ht
 
 ## installation
 pyjop comes pre-packaged with JOY OF PROGRAMMING in a dedicated Python env. So for the default gaming experience, a manual installation is not needed.
-If you wish to use use your own Python interpreter and IDE to communicate with the game, please install pyjop and its requirements in the Python enviorment of your choice.
+If you wish to use use your own Python interpreter and IDE to communicate with the game, please install pyjop and its requirements in the Python environment of your choice.
 
 ```python
 pip install git+https://github.com/maschere/pyjop -U
