@@ -5,28 +5,32 @@ import threading
 import socket
 import errno
 import sys
-#import os, psutil
+
+# import os, psutil
 from psutil import Process
 from os import getpid
 from gc import collect
 from datetime import datetime
-from pyjop.EntityBase import EntityBase, NPArray, _find_all_entity_classes_rec, _is_custom_level_runner
+from pyjop.EntityBase import (
+    EntityBase,
+    NPArray,
+    _find_all_entity_classes_rec,
+    _is_custom_level_runner,
+)
 import copy
 import inspect
 import random
 import math
 
-class SockAPIClient:
 
-    BUF_SIZE = 2 ** 16
+class SockAPIClient:
+    BUF_SIZE = 2**16
 
     TIMEOUT = 5
     lock = threading.Lock()
 
-    
-
     @staticmethod
-    def threaded_receive(connection:socket.socket):
+    def threaded_receive(connection: socket.socket):
         # connection.send(str.encode('Welcome to the Servern'))
         time.sleep(0.20095217)
         datall = bytearray()
@@ -42,13 +46,12 @@ class SockAPIClient:
                     lendatall = len(datall)
             except socket.error as e:
                 if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
-                    #_logjop.error("unkown error receiving: %s", e)
+                    # _logjop.error("unkown error receiving: %s", e)
                     SockAPIClient.lock.release()
                     break
             SockAPIClient.lock.release()
             if len(datall) > 0:
-                
-                #print("receive: " + str(datall))
+                # print("receive: " + str(datall))
                 # unpack all
                 all_frames = datall.split(NPArray._MAGIC_BYTES)
                 all_arrs = [
@@ -56,80 +59,84 @@ class SockAPIClient:
                     for m2 in all_frames
                     if len(m2) >= NPArray._HEADER_SIZE + 1
                     and int.from_bytes(m2[:4], "little")
-                    == len(m2[NPArray._HEADER_SIZE:])
+                    == len(m2[NPArray._HEADER_SIZE :])
                 ]
-                #missing frames / incomplete?
+                # missing frames / incomplete?
                 if len(all_arrs) > 0:
-                    #received valid data
+                    # received valid data
                     for nparr in all_arrs:
                         EntityBase._sync_incoming_data(nparr)
                     EntityBase.last_receive_at = datetime.utcnow()
 
                 if len(all_arrs) != len(all_frames):
-                    datall = bytearray() + all_frames[-1] #keep leftovers
+                    datall = bytearray() + all_frames[-1]  # keep leftovers
                 else:
                     datall = bytearray()
 
-            if (datetime.utcnow() - EntityBase.last_receive_at).total_seconds() > SockAPIClient.TIMEOUT:
-                #_logjop.warn("receive has timeout")
+            if (
+                datetime.utcnow() - EntityBase.last_receive_at
+            ).total_seconds() > SockAPIClient.TIMEOUT:
+                # _logjop.warn("receive has timeout")
                 break
             time.sleep(0.005)
-            #log.info("receive")
-        #_logjop.warn("receive has closed")
+            # log.info("receive")
+        # _logjop.warn("receive has closed")
         connection.close()
 
     @staticmethod
-    def threaded_send(connection:socket.socket):
+    def threaded_send(connection: socket.socket):
         time.sleep(0.2112456)
         # connection.send(str.encode('Welcome to the Servern'))
         data = b""
         while True:
             # log mem usage
-            if _is_custom_level_runner()==False and random.random() < 0.01:
+            if _is_custom_level_runner() == False and random.random() < 0.01:
                 k = "SimEnvManager.Current.MemUsg"
-                nparr = NPArray(k,np.asarray([get_memory_usage()],dtype=np.float32))
-                EntityBase._set_out_data(k,nparr)
+                nparr = NPArray(k, np.asarray([get_memory_usage()], dtype=np.float32))
+                EntityBase._set_out_data(k, nparr)
             did_send = False
-            if len(EntityBase._out_dict)>0:
+            if len(EntityBase._out_dict) > 0:
                 EntityBase.sendlock.acquire()
                 out_dict = copy.deepcopy(EntityBase._out_dict)
-                EntityBase._out_dict = dict() #clear
+                EntityBase._out_dict = dict()  # clear
                 EntityBase.sendlock.release()
-                #out_items = out_dict.items()
-                
-                #pack data
-                l = [v for k,v in out_dict.items()]
+                # out_items = out_dict.items()
+
+                # pack data
+                l = [v for k, v in out_dict.items()]
                 flat_list = [num.pack_msg() for sublist in l for num in sublist]
                 data = b"".join(flat_list)
-                
+
                 SockAPIClient.lock.acquire()
                 try:
                     # while sent
                     while len(data) > 0:
                         len_sent = connection.send(data)
                         did_send = True
-                        #print("sent " + str(len_sent))
+                        # print("sent " + str(len_sent))
                         data = data[len_sent:]
                 except socket.error as e:
                     if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
                         SockAPIClient.lock.release()
-                        #_logjop.error("unkown error sending: %s", e)
+                        # _logjop.error("unkown error sending: %s", e)
                         break
                 SockAPIClient.lock.release()
                 if did_send:
                     EntityBase.last_send_at = datetime.utcnow()
-            if (datetime.utcnow() - EntityBase.last_receive_at).total_seconds() > SockAPIClient.TIMEOUT:
-                #_logjop.warn("send has timeout")
+            if (
+                datetime.utcnow() - EntityBase.last_receive_at
+            ).total_seconds() > SockAPIClient.TIMEOUT:
+                # _logjop.warn("send has timeout")
                 break
             time.sleep(0.005)
-            #log.info("sent")
-        #_logjop.warn("sending closed")
+            # log.info("sent")
+        # _logjop.warn("sending closed")
         connection.close()
 
 
 class SimEnv:
-    """Python class for communicating with the current Simulation Environment. Use the SimEnvManager class once you are connected.
-    """    
+    """Python class for communicating with the current Simulation Environment. Use the SimEnvManager class once you are connected."""
+
     _is_connected = False
     _client_socket = socket.socket()
 
@@ -150,10 +157,13 @@ class SimEnv:
         EntityBase._in_dict = dict()
         EntityBase._entity_dict = dict()
         custom_classes = _find_all_entity_classes_rec()
-        if len(custom_classes) > 0: #convert to dict
-            EntityBase._custom_classes = {c.__name__: c for c in custom_classes if inspect.isclass(c) and issubclass(c,EntityBase)}
+        if len(custom_classes) > 0:  # convert to dict
+            EntityBase._custom_classes = {
+                c.__name__: c
+                for c in custom_classes
+                if inspect.isclass(c) and issubclass(c, EntityBase)
+            }
 
-       
         client_socket = socket.socket()
         client_socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_SNDBUF, SockAPIClient.BUF_SIZE
@@ -162,15 +172,14 @@ class SimEnv:
             socket.SOL_SOCKET, socket.SO_RCVBUF, SockAPIClient.BUF_SIZE
         )
 
-        #_logjop.info("Waiting for remote host %s:%i",host,port)
+        # _logjop.info("Waiting for remote host %s:%i",host,port)
         try:
             client_socket.connect((host, port))
         except socket.error as e:
-            #_logjop.error("connection error: %s",e)
+            # _logjop.error("connection error: %s",e)
             return False
 
         client_socket.setblocking(False)
-
 
         # start sender / recv threads
         t1 = threading.Thread(
@@ -180,7 +189,6 @@ class SimEnv:
         SimEnv._is_connected = True
         t1.start()
         t2.start()
-        
 
         t3 = threading.Thread(
             target=SimEnv.__observe_threads__,
@@ -201,13 +209,13 @@ class SimEnv:
         EntityBase._log_debug_static("pyjop connection established")
         SimEnv._client_socket = client_socket
         k = "SimEnvManager.Current.MemUsg"
-        nparr = NPArray(k,np.asarray([get_memory_usage()],dtype=np.float32))
-        EntityBase._set_out_data(k,nparr)
+        nparr = NPArray(k, np.asarray([get_memory_usage()], dtype=np.float32))
+        EntityBase._set_out_data(k, nparr)
         SimEnv.run_main()
         time.sleep(0.4)
 
-        #send source code statistics
-        
+        # send source code statistics
+
         return True
 
     @staticmethod
@@ -220,7 +228,7 @@ class SimEnv:
         if SockAPIClient.lock.locked():
             SockAPIClient.lock.release()
         SimEnv._is_connected = False
-        #_logjop.info("connection closed")
+        # _logjop.info("connection closed")
 
     @staticmethod
     def _handle_event_queue():
@@ -236,45 +244,49 @@ class SimEnv:
                         old_handlers.add(h)
                     h.handler_code(eventDat)
                     h.accepted_at = datetime.utcnow()
-            
-        #clear old handlers
-        EntityBase._event_q_handlers = [h for h in EntityBase._event_q_handlers if h not in old_handlers]
-                        
+
+        # clear old handlers
+        EntityBase._event_q_handlers = [
+            h for h in EntityBase._event_q_handlers if h not in old_handlers
+        ]
 
     @staticmethod
-    def run_main()->bool:
-        """run the main loop and exchange data with the SimEnv inside the loop while the connection is active. waits for one tick.
-        """
- 
-        #SimEnv.await_tick()
-        
+    def run_main() -> bool:
+        """run the main loop and exchange data with the SimEnv inside the loop while the connection is active. waits for one tick."""
+
+        # SimEnv.await_tick()
+
         last_update = EntityBase.last_receive_at
-        #wait for update
+        # wait for update
         start = 0.0
-        while last_update == EntityBase.last_receive_at and start<3 and SimEnv._is_connected:
+        while (
+            last_update == EntityBase.last_receive_at
+            and start < 3
+            and SimEnv._is_connected
+        ):
             time.sleep(0.002)
             start += 0.002
         SimEnv._handle_event_queue()
 
         return SimEnv._is_connected
-    
+
     @staticmethod
     def disconnect():
-        """disconnect from the SimEnv.
-        """
+        """disconnect from the SimEnv."""
         time.sleep(0.6)
         EntityBase._log_debug_static("pyjop closed connection")
         time.sleep(0.6)
         SimEnv._is_connected = False
         SimEnv._client_socket.close()
-        
-#_logjop.info("SimEnv ready")
+
+
+# _logjop.info("SimEnv ready")
 
 _overhead_mem_bytes = 0
 
+
 def get_memory_usage(subtract_overhead=True) -> float:
-    """get the currently used memory of your program in megabytes.
-    """
+    """get the currently used memory of your program in megabytes."""
     collect()
     process = Process(getpid())
     mb = process.memory_info().rss / (1e6)
@@ -283,6 +295,6 @@ def get_memory_usage(subtract_overhead=True) -> float:
     if mb < 1:
         mb = 1
     return mb
-        
+
 
 _overhead_mem_bytes = math.ceil(get_memory_usage(False))

@@ -379,10 +379,35 @@ class SpawnableMaps(StrEnum):
 class SpawnableEntities(StrEnum):
     """entities which can be spawned in the level editor
     """
+    AirstrikeControl=auto()
+    Artillery=auto()
     ConveyorBelt=auto()
-    DeliverableBox=auto()
+    CsvData=auto()
+    Deliverable=auto()
+    DeliverableSpawner=auto()
+    DeliveryContainer=auto()
+    DropZone=auto()
+    EntityBase=auto()
+    FactBox=auto()
+    GPSWaypoint=auto()
+    LEDStrip=auto()
+    LargeConveyorBelt=auto()
+    LevelEditor=auto()
+    Piano=auto()
+    PinHacker=auto()
+    RailConveyorBelt=auto()
     RangeFinder=auto()
+    RobotArm=auto()
     ServiceDrone=auto()
+    SimEnvManager=auto()
+    SmartCamera=auto()
+    SmartDoor=auto()
+    SmartLight=auto()
+    SmartPictureFrame=auto()
+    SmartSpeaker=auto()
+    TurnableConveyorBelt=auto()
+    VoxelBuilder=auto()
+    WineData=auto()
 
 @unique
 class SpawnableMeshes(StrEnum):
