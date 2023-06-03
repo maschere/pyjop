@@ -348,6 +348,13 @@ class EntityBase(Generic[T]):
             s = s + "." + prop_name
         return s
 
+    def _get_array_raw(self, prop_name:str):
+        k = self._build_name(prop_name)
+        if k in self._in_dict:
+            self._post_API_call()
+            return self._in_dict[k].array_data
+        return None
+
     def _get_float(self, prop_name: str) -> float:
         k = self._build_name(prop_name)
         if k in self._in_dict:

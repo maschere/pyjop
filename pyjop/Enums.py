@@ -334,6 +334,8 @@ def _hex_to_rgb(hex_string:str):
 
 
 def _parse_color(color_arg)->tuple[float,float,float]:
+    if not color_arg:
+        return (1.0,1.0,1.0) #default color white
     if type(color_arg) is str and color_arg in Colors:
         color_arg = Colors[color_arg]
     if type(color_arg) is Colors:
@@ -374,6 +376,7 @@ class SpawnableMaps(StrEnum):
     MinimalisticIndoor=auto()
     ParkingLot=auto()
     DesertIsland=auto() 
+    CellarHallway=auto()
 
 @unique
 class SpawnableEntities(StrEnum):

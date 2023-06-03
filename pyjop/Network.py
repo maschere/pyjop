@@ -278,6 +278,8 @@ class SimEnv:
         time.sleep(0.6)
         SimEnv._is_connected = False
         SimEnv._client_socket.close()
+        time.sleep(0.1)
+        sys.exit()
 
 
 # _logjop.info("SimEnv ready")

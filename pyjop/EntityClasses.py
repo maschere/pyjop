@@ -1258,10 +1258,13 @@ class LevelEditor(EntityBase["LevelEditor"]):
     def __init__(self, entity_name: str, **kwargs) -> None:
         super().__init__(entity_name, **kwargs)
         self._goal_funcs: Dict[str, Callable[[str], None]] = {}
-        self._dynamic_funcs: Dict[str, Callable[[], bool]] = {}
+        self._dynamic_funcs: Dict[str, Callable[[float,float], bool]] = {}
         self._dynamic_threads: Dict[str, threading.Thread] = {}
         self._goal_threads: Dict[str, threading.Thread] = {}
         self._on_level_reset_handler: Optional[Callable[[], None]] = None
+
+        self._last_tick = 0
+        self._current_tick = 0
 
     @classmethod
     def first(cls) -> "LevelEditor":
@@ -1368,10 +1371,11 @@ class LevelEditor(EntityBase["LevelEditor"]):
         Args:
             unique_name (str): unique name of the goal
             display_text (str): The text as displayed to the player in-game
+            update_func (Callable[[str],None]): function to evaluate the current goal. must have a single parameter which will be filled with the unique name of this goal. should call set_goal_progress or set_goal_state internally.
             goal_value (float): The relative value of this goal. If the sum of all completed goals is >1, then the level is completed. Ignored for optional goals (see below).
             is_resettable (bool): Whether the progress of this goal will be set to 0 / Open on a level reset
-            is_optional (bool): Whether this is an incremental goal and hides all subsequent goals
-            update_func (Callable[[str],None]): function to evaluate the current goal. must have a single parameter which will be filled with the unique name of this goal. should call set_goal_progress or set_goal_state internally.
+            is_optional (bool): Whether this is a mandatory goal or one of the optional goals
+            
 
         Example:
             >>>
@@ -1458,45 +1462,57 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_dynamic_func(self, unique_name: str, dynamic_func: Callable[[], bool]):
-        """set a named dynamic function that manipulates / observes the level at runtime
+    # def set_dynamic_func(self, unique_name: str, dynamic_func: Callable[[], bool]):
+    #     """set a named dynamic function that manipulates / observes the level at runtime
 
-        Args:
-            unique_name (str): unique name / id of the function
-            dynamic_func (Callable[[],bool]): reference to the function code. Should return True to stop looping when it is done and False otherwise
+    #     Args:
+    #         unique_name (str): unique name / id of the function
+    #         dynamic_func (Callable[[],bool]): reference to the function code. Should return True to stop looping when it is done and False otherwise
 
-        Example:
-            >>>
-            def blow_stuff_up():
-                sleep(10)
-                res = input("show explosion?")
-                if res=="yes":
-                    editor.show_vfx(SpawnableVFX.Explosion)
-                    editor.play_sound(SpawnableSounds.Explosion)
-                elif res == "stop":
-                    print("stop blowing stuff up")
-                    return True
+    #     Example:
+    #         >>>
+    #         def blow_stuff_up():
+    #             sleep(10)
+    #             res = input("show explosion?")
+    #             if res=="yes":
+    #                 editor.show_vfx(SpawnableVFX.Explosion)
+    #                 editor.play_sound(SpawnableSounds.Explosion)
+    #             elif res == "stop":
+    #                 print("stop blowing stuff up")
+    #                 return True
 
-            editor.set_dynamic_func("print_stuff", blow_stuff_up)
-        """
-        self._dynamic_funcs[unique_name] = dynamic_func
+    #         editor.set_dynamic_func("print_stuff", blow_stuff_up)
+    #     """
+    #     self._dynamic_funcs[unique_name] = dynamic_func
 
     def on_level_reset(self, func: Callable[[], None]):
-        """add an event handler that fires everytime the level is reset"""
+        """register a function that fires everytime the level is reset"""
         self._on_level_reset_handler = func
 
     def on_begin_play(self, func: Callable[[], None]):
-        """add a function that executes once on begin play after the level has been constructed
+        """register a function that executes once on begin play after the level has been fully constructed
 
         Args:
-            func (Callable[[],None]): the function to execute
+            func (Callable[[],None]): the function to register
         """
 
-        def wrapper():
+        def wrapper(gametime:float,deltatime:float):
             func()
             return True
 
         self._dynamic_funcs["on_begin_play_84654"] = wrapper
+
+    def on_tick(self, func: Callable[[float,float], None]):
+        """register a function that executes on every data exchange with the SimEnv. Provides current gametime and time since last tick call (both in seconds) as two parameters.
+
+        Args:
+            func (Callable[[float,float], None]): the function to register. Provides current gametime and time since last tick call (both in seconds) as two parameters.
+        """
+        def wrapper(gametime:float,deltatime:float):
+            func(gametime,deltatime)
+            return False
+        self._dynamic_funcs["on_tick_84654"] = wrapper
+        
 
     # run / inference functions
     def show_vfx(self, vfx: SpawnableVFX, **kwargs):
@@ -1698,6 +1714,9 @@ class LevelEditor(EntityBase["LevelEditor"]):
                 time.sleep(0.002)
                 start += 0.002
 
+            self._last_tick = self._current_tick
+            self._current_tick = m.get_sim_time()
+
             self._run_dynamics()
             self._check_goals()
             # handle level reset
@@ -1716,9 +1735,9 @@ class LevelEditor(EntityBase["LevelEditor"]):
         if not self._dynamic_funcs:
             return
         dyn_funcs = copy.deepcopy(self._dynamic_funcs)
-        # run all dyn funcs in parallel in their own thread
+        # run all dyn funcs in sequentially
         for k, f in dyn_funcs.items():
-            if f():
+            if f(self._current_tick, self._current_tick - self._last_tick):
                 del self._dynamic_funcs[k]
 
     def _check_goals(self):
@@ -1847,4 +1866,26 @@ class Maze(EntityBase["Maze"]):
         """
         k = self._build_name("SSSP")
         if k in self._in_dict:
+            self._post_API_call()
             return self._in_dict[k].array_data[:,:,0]
+
+    def editor_set_shortest_path_visible(self, is_visible:bool):
+        """[Level Editor only] Show the shortest path in-game"""
+        self._set_bool("setPathVisible", is_visible)
+
+class DialupPhone(EntityBase["DialupPhone"]):
+    """An old dialup phone with audible dial tones.
+    """
+
+    def get_last_number_audio(self):
+        """Get raw PCM Wave audio data of the dial tones for the last number that was dialed
+        """
+        k = self._build_name("LastNumberAudio")
+        if k in self._in_dict:
+            self._post_API_call()
+            return self._in_dict[k].array_data.squeeze()
+        return None
+
+    def dial_number(self, number:str):
+        """dial the specified number. can later retrieve the recorded dial tones with get_last_number_audio"""
+        self._set_string("DialNumber", number)
