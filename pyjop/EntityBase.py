@@ -1,12 +1,16 @@
 # pip wheel . --no-deps
-from abc import ABC, abstractmethod
+import base64
 import builtins
-from collections import deque
-import copy
+from io import BytesIO
 import json
+import queue
 import random
+from itertools import count
 import threading
-from types import FrameType, ModuleType
+
+builtins.print(".", end="")
+from PIL import Image
+from types import FrameType, ModuleType, SimpleNamespace
 from typing import (
     Any,
     Callable,
@@ -19,22 +23,24 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
 )
 import numpy as np
+builtins.print(".", end="")
+import skimage
+builtins.print(".", end="")
 import sys
 import time
+import encodings.utf_8_sig
 import skimage.transform
 import skimage.util
+builtins.print(".", end="")
 from datetime import datetime
 import inspect
 from queue import Queue
 from inspect import currentframe, getframeinfo
 
-from pyjop.Enums import Colors, _parse_color
-
-# _logjop = logging.getLogger("JOP_GAME")
-
+from pyjop.Enums import Colors
+from pyjop.Vector import Rotator3, Vector3
 
 class NPArray:
     """numpy array for transfer over tcp socket"""
@@ -44,9 +50,12 @@ class NPArray:
     _PRE_HEADER: Final = 17
     _HEADER_SIZE: Final = _NAME_LEN + _PRE_HEADER
 
+    time_id_it = count(start = 0, step = 1)
+
     def __init__(self, name: str, arr: np.ndarray) -> None:
         self.unique_name = name
         self.array_data: np.ndarray = arr
+        self.time_id = 0
 
     @classmethod
     def from_msg(cls, msg_b):
@@ -65,7 +74,10 @@ class NPArray:
             msg_b[NPArray._PRE_HEADER : NPArray._HEADER_SIZE].decode("ascii")
         )
         msg_b = msg_b[NPArray._HEADER_SIZE : NPArray._HEADER_SIZE + msg_len]
-        arr = np.ndarray(shape=(w, h, c), dtype=dt, buffer=msg_b)
+        if msg_len > 0:
+            arr = np.ndarray(shape=(h, w, c), dtype=dt, buffer=msg_b)
+        else:
+            arr = np.zeros((1,1,1),dtype=dt)
         nparr = NPArray(name, arr)
         return nparr
 
@@ -107,6 +119,23 @@ class NPArray:
         out += arr_b
         return out
 
+    def get_string(self) -> str:
+        return self.array_data.squeeze().tobytes().decode("ascii",errors='replace').strip()
+
+    def get_json_dict(self) -> dict[str,Any]:
+        js = {}
+        raw = self.array_data.squeeze().tobytes().decode("utf-8")
+        try:
+            js = json.loads(raw)
+        except:
+            pass
+        return js
+
+    def get_bool(self) -> bool:
+        return int(self.array_data[0][0][0]) != 0
+
+    
+
 
 def _is_custom_level_runner() -> bool:
     import sys
@@ -115,65 +144,56 @@ def _is_custom_level_runner() -> bool:
         return "custom_level_running" in sys.argv
     return False
 
+def _internal_python_process() -> bool:
+    import sys
 
-class EventData:
-    """unused at the moment"""
+    if len(sys.argv) > 1:
+        return "internal_python" in sys.argv
+    return False
 
-    def __init__(
-        self, event_name: str, sender_uniquename: str, timestamp: float, data: Any
-    ) -> None:
-        self.event_name = event_name
-        self.sender_uniquename = sender_uniquename
-        self.timestamp = timestamp
-        self.data = data
+from itertools import count
+def _stack_size(size:int = 2):
+    frame = sys._getframe(size)
 
-
-class EventListener:
-    def __init__(
-        self,
-        for_event: str,
-        from_sender: str,
-        is_oneshot=False,
-        test_accept: Optional[Callable[[EventData], bool]] = None,
-    ) -> None:
-        self.for_event = for_event
-        self.from_sender = from_sender
-        self.test_accept = test_accept
-        self.is_oneshot = is_oneshot
-        self.accepted_at = 0
-
-    def accepts(self, event_data: EventData) -> bool:
-        accepts = True
-        if self.for_event and self.for_event != event_data.event_name:
-            accepts = False
-        elif self.from_sender and self.from_sender != event_data.sender_uniquename:
-            accepts = False
-        elif self.test_accept is not None and self.test_accept(event_data) == False:
-            accepts = False
-        return accepts
+    for size in count(size):
+        frame = frame.f_back
+        if not frame:
+            return size
 
 
-class EventHandler(EventListener):
-    def __init__(
-        self,
-        handler_code: Callable[[EventData], None],
-        for_event: str,
-        from_sender: str,
-        test_accept: Optional[Callable[[EventData], bool]] = None,
-    ) -> None:
-        super().__init__(for_event, from_sender, test_accept)
-        self.handler_code = handler_code
+def is_non_spawnable(cls):
+    return "Base" in cls.__name__
 
-    def clear(self):
-        EntityBase._event_q_handlers = [
-            h for h in EntityBase._event_q_handlers if h != self
-        ]
 
-    def is_completed(self):
-        time.sleep(0.002)
-
+class JoyfulException(Exception):
+    """Custom exception for JOY OF PROGRAMMING."""
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+        
 
 T = TypeVar("T")
+
+class BaseEventData:
+    """Event data returned by several entities.
+    """
+    def __init__(self, new_vals: "dict[str, Any]"):
+        self.at_time:float = new_vals["time"]
+        """Simulation time in seconds when this event occurred"""
+        self.entity_type:str = new_vals["entityType"]
+        """The type of the entity that triggered this event."""
+        self.entity_name:str = new_vals["entityName"]
+        """The name of the entity that triggered this event."""
+        self.rfid_tag:str = new_vals["rfidTag"]
+        """The (optional) RFID tag of this entity.""" 
+
+    def __repr__(self) -> str:
+        s = ""
+        for k,v in self.__dict__.items():
+            s += f"{k}: {str(v)}\n"
+        return s
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 
 class EntityBase(Generic[T]):
@@ -182,22 +202,22 @@ class EntityBase(Generic[T]):
     _out_dict: Dict[str, List[NPArray]] = dict()
     _in_dict: Dict[str, NPArray] = dict()
     _entity_dict: Dict[str, "EntityBase"] = dict()
-    _event_q_raw: Queue[
-        EventData
-    ] = Queue()  # event name, sender unqiue name, timestamp, payload
-    _event_q_handlers: List[EventHandler] = []
     _custom_classes: Dict[str, Type["EntityBase"]] = dict()
     _BLANK_IMAGE: Final = np.zeros((64, 64, 3), dtype=np.uint8)
     _TIMEOUT: Final = 5
     last_receive_at = datetime.utcnow()
 
     last_send_at = datetime.utcnow()
+    _is_debug_paused = False
 
     sendlock = threading.Lock()
 
+    _event_queue: Queue[Tuple[NPArray,Callable[[T,float, Any],None]]] = Queue()
+
     @staticmethod
-    def _set_out_data(k, arr, append=False):
+    def _set_out_data(k:str, arr:NPArray, append=False):
         EntityBase.sendlock.acquire()
+        arr.time_id = next(NPArray.time_id_it)
         if append:
             if k not in EntityBase._out_dict:
                 EntityBase._out_dict[k] = [arr]
@@ -209,32 +229,22 @@ class EntityBase(Generic[T]):
 
     @staticmethod
     def _sync_incoming_data(nparr: NPArray):
-        if nparr.unique_name.startswith("EventQ."):
-            event_name = nparr.unique_name.replace("EventQ.", "")
-            raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
-            try:
-                raw_payload = json.loads(raw)
-                ts = raw_payload["ts"]
-                sender_name = raw_payload["sender"] if "sender" in raw_payload else ""
-            except:
-                return
-            EntityBase._event_q_raw.put_nowait(
-                EventData(event_name, sender_name, ts, raw_payload)
-            )
+        
         if nparr.unique_name.count(".") != 2:
             return
-        EntityBase._in_dict[nparr.unique_name] = nparr
         # get identifiers
         type_name, entity_name, prop_name = nparr.unique_name.split(".")
         fullname = type_name + "." + entity_name
+            
+
+        #ensure is in entity dict
         if fullname in EntityBase._entity_dict:
             # update sync timestamp
             EntityBase._entity_dict[fullname].last_sync_utc = datetime.utcnow()
-            return
         # add instance to entity dict if not exists. try custom entities first
-        if type_name in EntityBase._custom_classes:
+        elif type_name in EntityBase._custom_classes:
             try:
-                # get custom class as provied in custom classes
+                # get custom class as provided in custom classes
                 customcls = EntityBase._custom_classes[type_name]
                 customcls(entity_name, synccall="internal")
             except:
@@ -250,21 +260,42 @@ class EntityBase(Generic[T]):
                 # print(f"ERROR {type_name} not found! please add as custom class derived from EntityBase and import into your main module")
         # save type and name of all incoming entities (what about entities without sensors? should send ping and save timestamp)
 
+        if prop_name.startswith("_event"):
+            #print(f"received event {nparr.unique_name} {fullname in EntityBase._entity_dict}")
+            if fullname in EntityBase._entity_dict and nparr.unique_name in EntityBase._entity_dict[fullname].event_handlers:
+                #print(f"event handler there")
+                #put an event in queue
+                entity = EntityBase._entity_dict[fullname]
+                for listener in entity.event_handlers[nparr.unique_name]:
+                    entity._event_queue.put((nparr,listener))
+                    #print(f"enqueue event for entity")
+
+            
+        else:
+            #replicate value
+            EntityBase._in_dict[nparr.unique_name] = nparr
+        
+        
+    @staticmethod
+    def _clean_entity_dict():
+        items = EntityBase._entity_dict.copy().items()
+        EntityBase._entity_dict = {k:v for k, v in items if v.is_valid}
+
     @classmethod
-    def find_all(cls, find_derived=False) -> List[T]:
-        """Get all entities of the current type. If find_derived=True, then all dervied classes are found as well
+    def find_all(cls, find_derived=False, suppress_warnings=False) -> List[T]:
+        """Get all entities of the current type. If find_derived=True, then all derived classes are found as well
 
         Args:
-            find_derived (bool, optional): True to find all dervied classes as well, False otherwise. Defaults to False.
+            find_derived (bool, optional): True to find all derived classes as well, False otherwise. Defaults to False.
 
         Example:
             >>>
             convs = ConveyorBelt.find_all(True) #list of all conveyor belts, large conveyor belts, turnable conveyor belts and railed conveyor belts.
         """
         all_ents = cls._find_all_internal(find_derived)
-        if len(all_ents) == 0:
+        if len(all_ents) == 0 and suppress_warnings == False:
             EntityBase._log_debug_static(
-                f"Cannot find any entities of type '{cls.__name__}'", (1, 0, 0)
+                f"Cannot find any entities of type '{cls.__name__}'", (1, 1, 0)
             )
         return all_ents
 
@@ -273,14 +304,14 @@ class EntityBase(Generic[T]):
         items = EntityBase._entity_dict.copy().items()
         EntityBase._log_line_number()
         if find_derived or cls == EntityBase:
-            all_ents = [v for k, v in items if isinstance(v, cls)]
+            all_ents = [v for k, v in items if isinstance(v, cls) and v.is_valid]
         else:
-            all_ents = [v for k, v in items if v.__class__ == cls]
-        all_ents.sort(key=lambda x: x.get_entity_name())
+            all_ents = [v for k, v in items if v.__class__ == cls and v.is_valid]
+        all_ents.sort(key=lambda x: x.entity_name)
         return all_ents
 
     @classmethod
-    def find(cls, entity_name: str) -> T:
+    def find(cls, entity_name: str, suppress_warnings=False) -> T:
         """Find entity of the current type (or its derivatives) by its unique name. Entity names always start with "_entity" by default.
 
         Example:
@@ -290,22 +321,23 @@ class EntityBase(Generic[T]):
         """
         fullname = cls.__name__ + "." + entity_name
         EntityBase._log_line_number()
-        if fullname not in EntityBase._entity_dict:
+        if fullname not in EntityBase._entity_dict and suppress_warnings==False:
             EntityBase._log_debug_static(
                 f"Cannot find entity '{entity_name}'", (1, 1, 0)
             )
             return None
         v = EntityBase._entity_dict[fullname]
-        if isinstance(v, cls):
+        if isinstance(v, cls) and v.is_valid:
             return v
-        EntityBase._log_debug_static(
-            f"Cannot find entity '{entity_name}' of type '{cls.__name__}'", (1, 1, 0)
-        )
+        if suppress_warnings==False:
+            EntityBase._log_debug_static(
+                f"Cannot find entity '{entity_name}' of type '{cls.__name__}'", (1, 1, 0)
+            )
         return None
 
     @classmethod
-    def first(cls) -> T:
-        """Get first entity of the current type (non derived take precedence)
+    def first(cls, suppress_warnings=False) -> T:
+        """Get first entity of the current type (non derived take precedence) if at least one exists.
 
         Example:
             >>>
@@ -318,9 +350,31 @@ class EntityBase(Generic[T]):
         all = cls._find_all_internal(True)
         if len(all) > 0:
             return all[0]
-        EntityBase._log_debug_static(
-            f"Cannot find any entities of type '{cls.__name__}'", (1, 1, 0)
-        )
+        if suppress_warnings==False:
+            EntityBase._log_debug_static(
+                f"Cannot find any entities of type '{cls.__name__}'", (1, 1, 0)
+            )
+        return None
+
+    @classmethod
+    def any_random(cls, suppress_warnings=False) -> T:
+        """Get any random entity of the current type (non derived take precedence), if at least one exists.
+
+        Example:
+            >>>
+            conv = ConveyorBelt.first() #first conveyor belt
+            sim = SimEnvManager.first() #first (and only) simenv manager
+        """
+        all = cls._find_all_internal()
+        if len(all) > 0:
+            return random.choice(all)
+        all = cls._find_all_internal(True)
+        if len(all) > 0:
+            return random.choice(all)
+        if suppress_warnings==False:
+            EntityBase._log_debug_static(
+                f"Cannot find any entities of type '{cls.__name__}'", (1, 1, 0)
+            )
         return None
 
     def __init__(self, entity_name: str, **kwargs) -> None:
@@ -335,6 +389,7 @@ class EntityBase(Generic[T]):
 
         self.last_sync_utc = datetime.utcnow()
         EntityBase._entity_dict[fullname] = self
+        self.event_handlers:Dict[str, List[Callable[[T,float, NPArray],None]]] = dict()
 
     def _post_API_call(self):
         # stuff to do after each api call
@@ -348,41 +403,78 @@ class EntityBase(Generic[T]):
             s = s + "." + prop_name
         return s
 
-    def _get_array_raw(self, prop_name:str):
+    def _add_event_listener(self, event_name:str, handler:Callable[[T,float, NPArray],None], force_singleton = False):
+        full_eventname = self._build_name(event_name)      
+        if force_singleton or full_eventname not in self.event_handlers:
+            self.event_handlers[full_eventname] = [handler]
+        else:
+            self.event_handlers[full_eventname].append(handler)
+
+    def _clear_event_handlers(self, event_name:str):
+        full_eventname = self._build_name(event_name)  
+        self.event_handlers[full_eventname] = []
+
+    def _get_array_raw(self, prop_name:str, shape:List[int] = [0,0,0]) -> np.ndarray:
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._post_API_call()
-            return self._in_dict[k].array_data
-        return None
+            squeeze_axe = []
+            shape = list(shape)
+            for i in range(len(shape)):
+                if shape[i] == 0:
+                    shape[i] = self._in_dict[k].array_data.shape[i]
+                if shape[i] == 1:
+                    squeeze_axe.append(i)
+            return self._in_dict[k].array_data[0:shape[0],0:shape[1],0:shape[2]].squeeze(tuple(squeeze_axe))
+        if not _is_custom_level_runner():
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
+        return np.zeros(shape, dtype=np.uint8)
 
     def _get_float(self, prop_name: str) -> float:
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._post_API_call()
             return float(self._in_dict[k].array_data[0][0][0])
+        if not _is_custom_level_runner():
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
         return 0.0
 
-    def _get_vector(self, prop_name: str) -> np.ndarray:
+    def _get_vector3d(self, prop_name: str) -> Vector3:
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._post_API_call()
-            return self._in_dict[k].array_data[:3, 0, 0]
-        return np.asarray([0, 0, 0], dtype=np.float32)
+            return Vector3(self._in_dict[k].array_data.squeeze()[:3])
+        if not _is_custom_level_runner():
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
+        return Vector3()
+
+    def _get_rotator3d(self, prop_name: str) -> Rotator3:
+        k = self._build_name(prop_name)
+        if k in self._in_dict:
+            self._post_API_call()
+            return Rotator3(self._in_dict[k].array_data.squeeze()[:3])
+        if not _is_custom_level_runner():
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
+        return Rotator3()
+
 
     def _get_uint8(self, prop_name: str) -> int:
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._post_API_call()
             return int(self._in_dict[k].array_data[0][0][0])
+        if not _is_custom_level_runner():
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
         return 0
 
     def _get_int(self, prop_name: str) -> int:
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._post_API_call()
-            return int.from_bytes(
-                self._in_dict[k].array_data.squeeze().tobytes(), "little"
-            )
+            return int.from_bytes(self._in_dict[k].array_data.squeeze().tobytes(), "little")
+        
+        if not _is_custom_level_runner():    
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
         return 0
 
     def _get_bool(self, prop_name: str) -> bool:
@@ -390,28 +482,27 @@ class EntityBase(Generic[T]):
         if k in self._in_dict:
             self._post_API_call()
             return int(self._in_dict[k].array_data[0][0][0]) != 0
+        if not _is_custom_level_runner():
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
         return False
 
     def _get_string(self, prop_name: str) -> str:
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._post_API_call()
-            return (
-                self._in_dict[k].array_data.squeeze().tobytes().decode("ascii").strip()
-            )  # check if ascii
+            return (self._in_dict[k].get_string())  # check if ascii
+        if not _is_custom_level_runner():    
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
         return ""
 
-    def _get_json(self, prop_name: str) -> dict:
+    def _get_json(self, prop_name: str, suppress_warn = False) -> dict[str, Any]:
         k = self._build_name(prop_name)
-        js = {}
         if k in self._in_dict:
             self._post_API_call()
-            raw = self._in_dict[k].array_data.squeeze().tobytes().decode("utf-8")
-            try:
-                js = json.loads(raw)
-            except:
-                pass
-        return js
+            return self._in_dict[k].get_json_dict()
+        if not _is_custom_level_runner() and not suppress_warn:
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
+        return {}
 
     def _set_void(self, prop_name: str, append: bool = False):
         k = self._build_name(prop_name)
@@ -426,15 +517,20 @@ class EntityBase(Generic[T]):
         self._set_out_data(k, nparr, append)
         self._post_API_call()
 
-    def _set_vector(self, prop_name: str, val, append: bool = False) -> None:
+    def _set_vector3d(self, prop_name: str, val:Sequence[float]|Vector3|Rotator3, append: bool = False, add_args:Sequence[float] = []) -> None:
+        vec = _parse_vector(val, add_args=add_args)
         k = self._build_name(prop_name)
-        nparr = NPArray(k, np.asarray([val[0], val[1], val[2]], dtype=np.float32))
+        nparr = NPArray(k, np.asarray([vec[0], vec[1], vec[2]], dtype=np.float32))
 
         self._set_out_data(k, nparr, append)
         self._post_API_call()
 
     def _set_uint8(self, prop_name: str, val: int, append: bool = False) -> None:
         k = self._build_name(prop_name)
+        if val < 0:
+            val = 0
+        if val > 255:
+            val = 255
         nparr = NPArray(k, np.asarray([val], dtype=np.uint8))
         # check duplicate here
 
@@ -461,14 +557,22 @@ class EntityBase(Generic[T]):
 
     def _set_string(self, prop_name: str, val: str, append: bool = False) -> None:
         k = self._build_name(prop_name)
-        bytes = val.encode("ascii")
+        bytes = str(val).encode("utf-8")
         nparr = NPArray(k, np.frombuffer(bytes, dtype=np.uint8))
+
+        self._set_out_data(k, nparr, append)
+        self._post_API_call()
+
+    def _set_bytes(self, prop_name: str, val: bytes, append: bool = False) -> None:
+        k = self._build_name(prop_name)
+        nparr = NPArray(k, np.frombuffer(val, dtype=np.uint8))
 
         self._set_out_data(k, nparr, append)
         self._post_API_call()
 
     def _set_json(self, prop_name: str, val: Dict, append: bool = False) -> None:
         k = self._build_name(prop_name)
+        
         bytes = json.dumps(val, ensure_ascii=False).encode("utf-8")
         nparr = NPArray(k, np.frombuffer(bytes, dtype=np.uint8))
 
@@ -477,6 +581,7 @@ class EntityBase(Generic[T]):
 
     def _get_image(self, prop_name: str, channels=3) -> np.ndarray:
         k = self._build_name(prop_name)
+        self._post_API_call()
         if (
             k in self._in_dict
             and len(self._in_dict[k].array_data.shape) == 3
@@ -484,9 +589,13 @@ class EntityBase(Generic[T]):
         ):
             if channels == 3:
                 return self._in_dict[k].array_data[:, :, (2, 1, 0)] + 1 - 1  # but why?
+            if channels == 2:
+                return self._in_dict[k].array_data[:, :, (0, 1)] + 1 - 1  # but why?
             if channels == 1:
                 return self._in_dict[k].array_data[:, :, 0] + 1 - 1  # but why?
-        return self._BLANK_IMAGE if channels == 3 else self._BLANK_IMAGE[:, :, 0]
+        if not _is_custom_level_runner():    
+            EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
+        return self._BLANK_IMAGE if channels == 3 else self._BLANK_IMAGE[:, :, 0] if channels <=1 else self._BLANK_IMAGE[:, :, 0:2]
 
     # def _is_already_set(self,arr:NPArray)->bool:
     #     return False
@@ -504,11 +613,13 @@ class EntityBase(Generic[T]):
     @property
     def is_valid(self) -> bool:
         """checks if this entity is still in the SimEnv and valid"""
-        return (datetime.utcnow() - self.last_sync_utc).total_seconds() < 5
+        return _debugger_is_active() or (datetime.utcnow() - self.last_sync_utc).total_seconds() < 3
 
-    def get_entity_name(self) -> str:
+    @property
+    def entity_name(self) -> str:
         """Get the unique name of this entity."""
         return self.__entity_name
+
 
     # def Ping(self, color = (255,0,0), duration = 2):
     #     """Pings the current entity in-game and blinks with the specified color for the specified duration (in seconds). good for debugging.
@@ -525,36 +636,49 @@ class EntityBase(Generic[T]):
         """select and focus on this entity in the SimEnv viewport"""
         self._set_void("Focus")
 
-    def resend_data(self):
-        """to save bandwith, several entities send static data only once. calling this causes a resend of all data of this entity."""
-        self._set_void(
-            "*ResendData"
-        )  # wildcard command for all components in this entity
-        await_tick()
-
-    def __str__(self):
+    def __str__(self) -> str:
         # custom string representation. print type and unique name
-        return self._build_name()
+        return self.entity_name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # custom string representation. print type and unique name and TODO all sensor values
-        return self._build_name()
+        return self.entity_name
+
+    def __eq__(self, other:object) -> bool:
+        """Two entities are equal if their unique names are equal. Comparison with str is also possible"""
+        if isinstance(other, EntityBase):
+            return self.entity_name == other.entity_name
+        if isinstance(other, str):
+            return self.entity_name == other
+        return False
+
+    def __hash__(self) -> int:
+        """Hash value of entities is based on their unique name str"""
+        return hash(self.entity_name)
 
     @staticmethod
-    def _log_line_number():
-        """send the currently running line number (of the main file) to the game"""
+    def _get_line_number() -> int:
         if sys.gettrace():
-            return
+            return -1
         if threading.current_thread() is not threading.main_thread():
-            return
+            return -1
         if _is_custom_level_runner():
-            return
+            return -1
         cf = currentframe()
+        if not cf:
+            return -1
         m = inspect.getmodule(cf)
         while cf.f_back and m and m.__name__.startswith("pyjop."):
             cf = cf.f_back
         finfo = getframeinfo(cf)
-        no = finfo.lineno
+        return finfo.lineno
+
+    @staticmethod
+    def _log_line_number():
+        """send the currently running line number (of the main file) to the game"""
+        no = EntityBase._get_line_number()
+        if no < 0:
+            return
         # builtins.print(no)
         k = "SimEnvManager.Current.LogLineNo"
         nparr = NPArray(k, np.frombuffer(int.to_bytes(no, 4, "little"), dtype=np.uint8))
@@ -569,7 +693,6 @@ class EntityBase(Generic[T]):
 
         self._set_out_data(k, nparr, True)
 
-        # _logjop.info(self.__class__.__name__ + "." + self.__entity_name + ": " + msg)
         self._post_API_call()
 
     @staticmethod
@@ -580,20 +703,7 @@ class EntityBase(Generic[T]):
         bytes = json.dumps(jsonDict, ensure_ascii=False).encode("utf-8")
         nparr = NPArray(k, np.frombuffer(bytes, dtype=np.uint8))
         EntityBase._set_out_data(k, nparr, True)
-        # _logjop.info(msg)
-        # check for multi print
-        # EntityBase.sendlock.acquire()
-        # if k in EntityBase._out_dict:
-        #     oldBytes = EntityBase._out_dict[k].array_data.tobytes()
-        #     if oldBytes != bytes:
-        #         oldjsonDict = json.loads(EntityBase._out_dict[k].array_data.tobytes().decode("utf-8"))
-        #         if oldjsonDict["col"] == list(col):
-        #             oldjsonDict["msg"] += "\n" + msg
-        #             bytes = json.dumps(oldjsonDict,ensure_ascii=False).encode("utf-8")
-        #             nparr = NPArray(k,np.frombuffer(bytes, dtype=np.uint8))
-
-        # EntityBase._out_dict[k]=nparr
-        # EntityBase.sendlock.release()
+        
         EntityBase._log_line_number()
 
     @staticmethod
@@ -606,7 +716,7 @@ class EntityBase(Generic[T]):
             imgArr = np.expand_dims(imgArr, 2)
 
         if imgArr.shape[0] != 256 or imgArr.shape[1] != 256:
-            imgArr = skimage.transform.resize(imgArr, (256, 256)) * 255
+            imgArr = skimage.transform.resize(imgArr, (256, 256), anti_aliasing = False, preserve_range=True, order=0)
 
         # convert to uint8
         if imgArr.dtype != np.uint8:
@@ -620,17 +730,22 @@ class EntityBase(Generic[T]):
         EntityBase._log_line_number()
 
 
-def await_tick(timeout=6):
-    """Wait for one roundtrip between Python and the SimEnv
+class EntityBaseStub(EntityBase[T]):
+    pass
 
-    Args:
-        timeout (int, optional): Defaults to 6 seconds.
-    """
+def await_send(timeout=6):
     start = 0.0
     last_send = EntityBase.last_send_at
     while last_send == EntityBase.last_send_at and start < timeout:
         time.sleep(0.002)
         start += 0.002
+
+def await_receive(timeout=6):
+    """Wait for one roundtrip between Python and the SimEnv
+
+    Args:
+        timeout (int, optional): Defaults to 6 seconds.
+    """
 
     start = 0.0
     last_receive = EntityBase.last_receive_at
@@ -674,6 +789,34 @@ def _find_all_entity_classes_rec(
     dupes = set([x for x in all_names if all_names.count(x) > 1])
     assert len(dupes) == 0, f"duplicate entity classes found: {dupes}"
     return all_classes
+
+
+def _dispatch_events():
+    try:
+        gt = float(EntityBase._in_dict["SimEnvManager.Current.SimTime"].array_data[0,0,0])
+        while True:
+            event = EntityBase._event_queue.get_nowait()
+            if not event:
+                return
+            if event[1] is None:
+                continue
+            nparr = event[0]
+            type_name, entity_name, prop_name = nparr.unique_name.split(".")
+            fullname = type_name + "." + entity_name
+            if fullname not in EntityBase._entity_dict:
+                continue
+            
+            event[1](EntityBase._entity_dict[fullname],gt,nparr)
+    except queue.Empty:
+        pass
+    except Exception as err:
+        EntityBase._log_debug_static("Event error: " + str(err), (1,0,0))
+        pass
+
+    if EntityBase._is_debug_paused and _debugger_is_active():
+        from pyjop.Network import SockAPIClient, SimEnv
+        SockAPIClient._force_send_manual(SimEnv._client_socket, NPArray("SimEnvManager.Current.setTimeDilation", np.asarray([1], dtype=np.float32)))
+        EntityBase._is_debug_paused = False
 
 
 # beware of the depths below:
@@ -732,23 +875,36 @@ def _trace_debug_jop_call(frame: FrameType, event, arg):
     EntityBase._set_out_data(k, nparr)
     simenv = _trace_debug_jop_call.m.first()  # simenv manager
     if simenv:
-        old_res = simenv._get_json("DebugCmd")  # res and ts (real time)
+        old_res = simenv._get_json("DebugCmd", True)  # res and ts (real time)
         if "bp" in old_res:
             _trace_debug_jop_call.bp = old_res["bp"]
     if do_break and simenv:
-        allvars = {
-            k: str(v)
-            for (k, v) in frame.f_locals.items()
-            if not isinstance(v, (ModuleType))
-        }
+        allvars = {}
+        alltvars_watch = []
+        for k, v in frame.f_locals.items():
+            if isinstance(v, (ModuleType)):
+                continue
+            vstr = str(v)
+            if type(v) is np.ndarray and len(v.shape) >= 2 and v.shape[0] > 10 and v.shape[1]>10:
+                pil_img = Image.fromarray(v)
+                with BytesIO() as buff:
+                    pil_img.save(buff, format="JPEG")
+                    vstr = base64.b64encode(buff.getvalue()).decode("ascii")
+            allvars[k] = vstr
+            d_valstr = vstr if len(vstr) < 41 else vstr[0:40]+'...'
+            d_typestr = f"({str(type(v).__name__)})"
+            if type(v).__module__.startswith("pyjop.EntityClasses"):
+                d_typestr = ""
+            alltvars_watch.append(f"{k} {d_typestr}: {d_valstr}")
+            
         _trace_debug_jop_call.print(
-            "DEBUG:", lineno, [s.strip() for s in finfo.code_context], allvars
+            "DEBUG:", lineno, [s.strip() for s in finfo.code_context], ", ".join(alltvars_watch)
         )
 
         simenv._set_json("DebugData", allvars)
         while True:
             time.sleep(0.01)
-            res = simenv._get_json("DebugCmd")
+            res = simenv._get_json("DebugCmd", True)
             if res and res != old_res:
                 # cmd = _trace_debug_jop_call.input("c/s/o: ")
                 cmd: str = res["res"]
@@ -795,24 +951,87 @@ def debug_mode(bp: Sequence[int] = [], stepping=False, break_error=True, enabled
     _trace_debug_jop_call.input = input
     _trace_debug_jop_call.m = SimEnvManager
 
-
 def _is_admin_process():
     return "admin_process" in sys.argv
 
+def _debugger_is_active() -> bool:
+    """Return if the debugger is currently active"""
+    return hasattr(sys, 'gettrace') and sys.gettrace() is not None
 
-# def exec_python_script(path:str,m_name="CurrentPyScript"):
-#     from pathlib import Path
-#     # import ctypes.wintypes
-#     # CSIDL_PERSONAL = 5       # My Documents
-#     # SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-#     # buf= ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-#     # ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+def _parse_vector(arg, as_dict=False, dict_names:tuple[str,str,str]=("x","y","z"), add_args:Sequence[float] = []) -> tuple[float,float,float] | dict[str, float] | None:
+    if arg is None:
+        return None
+    if not hasattr(arg, "__len__"):
+        vec = (arg, arg, arg)
+        if len(add_args)==2:
+            vec = (arg, add_args[0], add_args[1])
+    elif type(arg) is dict:
+        vec = (arg[dict_names[0]],arg[dict_names[1]],arg[dict_names[2]])
+    elif len(arg) == 1:
+        vec = (arg[0], arg[0], arg[0])
+        if len(add_args)==2:
+            vec = (arg, add_args[0], add_args[1])
+    elif len(arg) == 2:
+        vec = (arg[0], arg[1], 0)
+    else:
+        vec =  (arg[0], arg[1], arg[2])
+    vec = (float(vec[0]),float(vec[1]),float(vec[2]))    
+    if as_dict:
+        return {dict_names[0]: vec[0], dict_names[1]: vec[1], dict_names[2]: vec[2]}
+    else:
+        return vec
+    
+def _hex_to_rgb(hex_string:str):
+    hex_string = hex_string.lstrip('#').upper()  # Remove '#' and convert to uppercase
+    red = int(hex_string[0:2], 16) / 255.0
+    green = int(hex_string[2:4], 16) / 255.0
+    blue = int(hex_string[4:6], 16) / 255.0
+    return red, green, blue
 
-#     p = Path(path)
-#     #p = Path.joinpath(doc_path, "JoyOfProgramming/CurrentCustomLevel.py")
-#     if p.absolute().is_file():
 
-#         import importlib.util
-#         spec = importlib.util.spec_from_file_location(m_name, str(p.absolute()))
-#         foo = importlib.util.module_from_spec(spec)
-#         spec.loader.exec_module(foo)
+def _parse_color(color_arg, as_dict=False)->tuple[float,float,float] | dict[str,float]:
+    if not color_arg:
+        return {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0} if as_dict else (1.0,1.0,1.0)#default color white
+    if type(color_arg) is str and color_arg in Colors:
+        color_arg = Colors[color_arg]
+    if type(color_arg) is Colors:
+        color_arg = color_arg.value
+    if type(color_arg) is str and len(color_arg)==7 and color_arg[0]=="#":
+        color_arg = _hex_to_rgb(color_arg)
+    if type(color_arg) is dict:
+        color_arg = [color_arg["r"],color_arg["g"],color_arg["b"]]
+    if len(color_arg) > 3:
+        color_arg = color_arg[:3]
+    if max(color_arg) > 1 and type(color_arg[0]) is int and type(color_arg[1]) is int and type(color_arg[2]) is int:
+        color_arg = [c/255.0 for c in color_arg]
+
+    if as_dict:
+        return {"r": color_arg[0], "g": color_arg[1], "b": color_arg[2], "a": 1.0}
+    else:
+        return color_arg
+
+# def singleton(cls):
+#     instances = {}
+#     def get_instance(*args, **kwargs):
+#         if cls not in instances:
+#             instances[cls] = cls(*args, **kwargs)
+#         return instances[cls]
+
+#     return get_instance
+class DataModelBase(SimpleNamespace):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def reset(self):
+        """Reset the data model to its initial state.
+        """
+        self.__init__()
+
+    def __repr__(self) -> str:
+        fields = ", ".join([f"{k}={str(v)}" for k,v in self.__dict__.items()])
+        return fields
+        
+    def __str__(self) -> str:
+        return self.__repr__()
+
+

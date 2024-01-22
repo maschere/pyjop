@@ -1,6 +1,4 @@
 from enum import Enum, EnumMeta,auto, unique
-from typing import Tuple
-
 
 class MetaEnum(EnumMeta):
     def __contains__(cls, item):
@@ -48,6 +46,8 @@ class StrMetaEnum(MetaEnum):
             except KeyError:
                 raise AttributeError(name) from None
         return name
+
+    
         
 
 class IntEnum(int, Enum, metaclass=MetaEnum):
@@ -58,6 +58,7 @@ class StrEnum(str, Enum, metaclass=StrMetaEnum):
         return self.name
     def _generate_next_value_(name, start, count, last_values):
         return name
+    
     
 
 class ColorEnum(tuple,Enum, metaclass=MetaEnum):
@@ -85,90 +86,125 @@ class ParameterTypes(IntEnum):
 class MusicNotes(StrEnum):
     """names musical notes
     """
-    C1="C1"
-    Cs1="Cs1"
-    D1="D1"
-    Eb1="Eb1"
-    E1="E1"
-    F1="F1"
-    Fs1="Fs1"
-    G1="G1"
-    Ab1="Ab1"
-    A1="A1"
-    Bb1="Bb1"
-    B1="B1"
-    C2="C2"
-    Cs2="Cs2"
-    D2="D2"
-    Eb2="Eb2"
-    E2="E2"
-    F2="F2"
-    Fs2="Fs2"
-    G2="G2"
-    Ab2="Ab2"
-    A2="A2"
-    Bb2="Bb2"
-    B2="B2"
-    C3="C3"
-    Cs3="Cs3"
-    D3="D3"
-    Eb3="Eb3"
-    E3="E3"
-    F3="F3"
-    Fs3="Fs3"
-    G3="G3"
-    Ab3="Ab3"
-    A3="A3"
-    Bb3="Bb3"
-    B3="B3"
-    C4="C4"
-    Cs4="Cs4"
-    D4="D4"
-    Eb4="Eb4"
-    E4="E4"
-    F4="F4"
-    Fs4="Fs4"
-    G4="G4"
-    Ab4="Ab4"
-    A4="A4"
-    Bb4="Bb4"
-    B4="B4"
-    C5="C5"
-    Cs5="Cs5"
-    D5="D5"
-    Eb5="Eb5"
-    E5="E5"
-    F5="F5"
-    Fs5="Fs5"
-    G5="G5"
-    Ab5="Ab5"
-    A5="A5"
-    Bb5="Bb5"
-    B5="B5"
-    C6="C6"
-    Cs6="Cs6"
-    D6="D6"
-    Eb6="Eb6"
-    E6="E6"
-    F6="F6"
-    Fs6="Fs6"
-    G6="G6"
-    Ab6="Ab6"
-    A6="A6"
-    Bb6="Bb6"
-    B6="B6"
-    C7="C7"
-    Cs7="Cs7"
-    D7="D7"
-    Eb7="Eb7"
-    E7="E7"
-    F7="F7"
-    Fs7="Fs7"
-    G7="G7"
-    Ab7="Ab7"
-    A7="A7"
-    Bb7="Bb7"
-    B7="B7"
+    C1=auto()
+    Db1=auto()
+    D1=auto()
+    Eb1=auto()
+    E1=auto()
+    F1=auto()
+    Gb1=auto()
+    G1=auto()
+    Ab1=auto()
+    A1=auto()
+    Bb1=auto()
+    B1=auto()
+    C2=auto()
+    Db2=auto()
+    D2=auto()
+    Eb2=auto()
+    E2=auto()
+    F2=auto()
+    Gb2=auto()
+    G2=auto()
+    Ab2=auto()
+    A2=auto()
+    Bb2=auto()
+    B2=auto()
+    C3=auto()
+    Db3=auto()
+    D3=auto()
+    Eb3=auto()
+    E3=auto()
+    F3=auto()
+    Gb3=auto()
+    G3=auto()
+    Ab3=auto()
+    A3=auto()
+    Bb3=auto()
+    B3=auto()
+    C4=auto()
+    Db4=auto()
+    D4=auto()
+    Eb4=auto()
+    E4=auto()
+    F4=auto()
+    Gb4=auto()
+    G4=auto()
+    Ab4=auto()
+    A4=auto()
+    Bb4=auto()
+    B4=auto()
+    C5=auto()
+    Db5=auto()
+    D5=auto()
+    Eb5=auto()
+    E5=auto()
+    F5=auto()
+    Gb5=auto()
+    G5=auto()
+    Ab5=auto()
+    A5=auto()
+    Bb5=auto()
+    B5=auto()
+    C6=auto()
+    Db6=auto()
+    D6=auto()
+    Eb6=auto()
+    E6=auto()
+    F6=auto()
+    Gb6=auto()
+    G6=auto()
+    Ab6=auto()
+    A6=auto()
+    Bb6=auto()
+    B6=auto()
+    C7=auto()
+    Db7=auto()
+    D7=auto()
+    Eb7=auto()
+    E7=auto()
+    F7=auto()
+    Gb7=auto()
+    G7=auto()
+    Ab7=auto()
+    A7=auto()
+    Bb7=auto()
+    B7=auto()
+    Cs1=auto()
+    Ds1=auto()
+    Fs1=auto()
+    Gs1=auto()
+    As1=auto()
+    Cs2=auto()
+    Ds2=auto()
+    Fs2=auto()
+    Gs2=auto()
+    As2=auto()
+    Cs3=auto()
+    Ds3=auto()
+    Fs3=auto()
+    Gs3=auto()
+    As3=auto()
+    Cs4=auto()
+    Ds4=auto()
+    Fs4=auto()
+    Gs4=auto()
+    As4=auto()
+    Cs5=auto()
+    Ds5=auto()
+    Fs5=auto()
+    Gs5=auto()
+    As5=auto()
+    Cs6=auto()
+    Ds6=auto()
+    Fs6=auto()
+    Gs6=auto()
+    As6=auto()
+    Cs7=auto()
+    Ds7=auto()
+    Fs7=auto()
+    Gs7=auto()
+    As7=auto()
     
 
 
@@ -325,28 +361,6 @@ class Colors(ColorEnum):
     Yellowgreen=(0.6039215686274509, 0.803921568627451, 0.19607843137254902)
 
 
-def _hex_to_rgb(hex_string:str):
-    hex_string = hex_string.lstrip('#').upper()  # Remove '#' and convert to uppercase
-    red = int(hex_string[0:2], 16) / 255.0
-    green = int(hex_string[2:4], 16) / 255.0
-    blue = int(hex_string[4:6], 16) / 255.0
-    return red, green, blue
-
-
-def _parse_color(color_arg)->tuple[float,float,float]:
-    if not color_arg:
-        return (1.0,1.0,1.0) #default color white
-    if type(color_arg) is str and color_arg in Colors:
-        color_arg = Colors[color_arg]
-    if type(color_arg) is Colors:
-        color_arg = color_arg.value
-    if type(color_arg) is str and len(color_arg)==7 and color_arg[0]=="#":
-        color_arg = _hex_to_rgb(color_arg)
-    if len(color_arg) > 3:
-        color_arg = color_arg[:3]
-    if max(color_arg) > 1:
-        color_arg = [c/255.0 for c in color_arg]
-    return color_arg
 
 @unique
 class ComparisonResult(IntEnum):
@@ -357,6 +371,100 @@ class ComparisonResult(IntEnum):
     GreatherThan=1
 
 
+@unique
+class WeatherScenario(IntEnum):
+    """Different weather scenarios selectable in the level editor outdoor levels.
+    """
+    ClearSky=0
+    MediumClouded=1
+    Clouded=2
+    MediumRain=3
+    HeavyRain=4
+    ThunderRain=5
+    ThunderStorm=6
+    Foggy=7
+
+@unique
+class CardSuit(IntEnum):
+    Spades=3
+    Hearts=2
+    Diamonds=1
+    Clubs=0
+@unique
+class CardRank(IntEnum):
+    Two = 2
+    Three = 3
+    Four = 4
+    Five = 5
+    Six = 6
+    Seven = 7
+    Eight = 8
+    Nine = 9
+    Ten = 10
+    Jack = 11
+    Queen = 12
+    King = 13
+    Ace = 14
+@unique
+class ElevatorState(StrEnum):
+    """Current state of the elevator.
+    """
+    Unkown=auto()
+    Idle=auto()
+    Upwards=auto()
+    Downwards=auto()
+@unique
+class MachineState(StrEnum):
+    Unknown=auto()
+    Idle=auto()
+    Moving=auto()
+    
+class ArcadeButtons(StrEnum):
+    """All possible buttons on an arcade machine
+    """
+    Up=auto()
+    Down=auto()
+    Left=auto()
+    Right=auto()
+    LeftUp=auto()
+    RightUp=auto()
+    LeftDown=auto()
+    RightDown=auto()
+    A=auto()
+    B=auto()
+    X=auto()
+    Y=auto()
+    Menu=auto()
+
+class ArcadeAxis(StrEnum):
+    """All possible axes available on the arcade machine"""
+    UpDown=auto()
+    RightLeft=auto()
+    SecondaryUpDown=auto()
+    SecondaryRightLeft=auto()
+
+class ArcadeGames(StrEnum):
+    """All available games on the arcade machine"""
+    Snak=auto()
+    BlokOut=auto()
+    
+    
+class TrafficLightStates(StrEnum):
+    """Possible states of a traffic light
+    """
+    Off=auto()
+    Red=auto()
+    RedYellow=auto()
+    Yellow=auto()
+    Green=auto()
+
+@unique
+class CameraType(IntEnum):
+    RGB=0
+    Depth=1
+    OpticalFlow=2
+    Segmentation=3
+    ObjectDetector=4
 
 
 @unique
@@ -371,46 +479,94 @@ class GoalState(StrEnum):
 
 @unique
 class SpawnableMaps(StrEnum):
-    """spawnable maps for the level editor
+    """Spawnable maps for the level editor
     """
     MinimalisticIndoor=auto()
     ParkingLot=auto()
-    DesertIsland=auto() 
+    DesertIsland=auto()
     CellarHallway=auto()
+    SmartHome=auto()
+    MuseumHall=auto()
+    BrutalistHall=auto()
+    MilitaryBase=auto()
+    Bridge=auto()
+    WineCellar=auto()
+    SmallWarehouse=auto()
+    MedievalCourtyard=auto()
+    CpuWorld=auto()
+    InfinitePlane=auto()
+    GrasslandOutdoor=auto()
+    
 
 @unique
 class SpawnableEntities(StrEnum):
     """entities which can be spawned in the level editor
     """
     AirstrikeControl=auto()
+    ArcadeMachine=auto()
     Artillery=auto()
+    CarvingRobot=auto()
+    ColorCubePuzzle=auto()
     ConveyorBelt=auto()
-    CsvData=auto()
+    DataExchange=auto()
     Deliverable=auto()
-    DeliverableSpawner=auto()
+    ObjectSpawner=auto()
     DeliveryContainer=auto()
-    DropZone=auto()
-    EntityBase=auto()
-    FactBox=auto()
+    DialupPhone=auto()
+    Elevator=auto()
     GPSWaypoint=auto()
+    GunTurret=auto()
+    HumanoidRobot=auto()
+    InputBox=auto()
+    Killzone=auto()
     LEDStrip=auto()
     LargeConveyorBelt=auto()
-    LevelEditor=auto()
+    LaunchPad=auto()
+    Maze=auto()
+    MovablePlatform=auto()
+    PaintableCanvas=auto()
     Piano=auto()
     PinHacker=auto()
+    PlanarRobotCrane=auto()
+    PoolTable=auto()
+    PullerRobot=auto()
+    PushButton=auto()
+    PusherRobot=auto()
+    RadarTrap=auto()
     RailConveyorBelt=auto()
     RangeFinder=auto()
+    RemoteExplosive=auto()
     RobotArm=auto()
     ServiceDrone=auto()
-    SimEnvManager=auto()
+    Slider=auto()
     SmartCamera=auto()
     SmartDoor=auto()
-    SmartLight=auto()
+    SmartLiDAR=auto()
+    SmartPointLight=auto()
+    SmartSpotLight=auto()
     SmartPictureFrame=auto()
+    SmartPortal=auto()
+    SmartRadar=auto()
     SmartSpeaker=auto()
+    SmartTracker=auto()
+    SmartWall=auto()
+    SniperRifle=auto()
+    ToggleSwitch=auto()
+    TrafficLight=auto()
+    TriggerZone=auto()
     TurnableConveyorBelt=auto()
+    VacuumRobot=auto()
     VoxelBuilder=auto()
     WineData=auto()
+    AirliftCrane=auto()
+    PlayingCard=auto()
+    DigitalScale=auto()
+    AlarmClock=auto()
+    SimplePhysicsCar=auto()
+    RaceCar=auto()
+    PostProcessVolume=auto()
+    ProximitySensor=auto()
+    AlarmSiren=auto()
 
 @unique
 class SpawnableMeshes(StrEnum):
@@ -421,30 +577,310 @@ class SpawnableMeshes(StrEnum):
     Plane=auto()
     Cylinder=auto()
     Cone=auto()
+    BarrelRed=auto()
+    BarrelGreen=auto()
+    CardboardBox=auto()
+    PalletBoxOpen=auto()
+    PalletBoxLid=auto()
+    Dumpster=auto()
+    TireWheel=auto()
+    CogWheel=auto()
+    SignStop=auto()
+    SignDanger=auto()
+    TrafficCone=auto()
+    SignRadioactive=auto()
+    Ladder=auto()
+    SignExit=auto()
+    Ramp=auto()
+    TrussingHigh=auto()
+    Trussing200=auto()
+    TrussingCrossing=auto()
+    ConcreteBarrier=auto()
+    SandBarrier=auto()
+    FenceLarge=auto()
+    Shelf=auto()
+    Door=auto()
+    BarbedWire=auto()
+    Goldbar=auto()
+    CoinEuro1=auto()
+    CoinEuro2=auto()
+    CoinEuroCent1=auto()
+    CoinEuroCent2=auto()
+    CoinEuroCent5=auto()
+    CoinEuroCent10=auto()
+    CoinEuroCent20=auto()
+    CoinEuroCent50=auto()
+    BankNoteEuro5=auto()
+    BankNoteEuro10=auto()
+    BankNoteEuro20=auto()
+    BankNoteEuro50=auto()
+    BankNoteEuro100=auto()
+    Anvil=auto()
+    SmallFence=auto()
+    Torus=auto()
+    Bag=auto()
+    Hat1=auto()
+    PaintingWide=auto()
 
 @unique
 class SpawnableMaterials(StrEnum):
-    """materias which can be spawned in the level editor
+    """Materials which can be spawned in the level editor
     """
     Default=auto()
     SimpleColor=auto()
+    ColoredTexture=auto()
+    Glass=auto()
+    SimpleColorWorldAligned=auto()
+    SimpleEmissive=auto()
+    SimpleTranslucent=auto()
 
 @unique
 class SpawnableSounds(StrEnum):
     """Sounds which can be played from the level editor
     """
     Explosion=auto()
+    ButtonClick=auto()
+    DoorOpen=auto()
+    DoorClose=auto()
+    DoorSlide=auto()
+    ExplosionMagic=auto()
+    ExplosionPuff=auto()
+    HitBarrel=auto()
+    HitCardboard=auto()
+    HitRubber=auto()
+    HitGravel=auto()
+    ElectricityBuzz=auto()
+    LargeSwitch=auto()
+    GunshotLarge=auto()
+    TakePhoto=auto()
+    GunshotSilenced=auto()
+    TypingKeys=auto()
+    SwitchSmall=auto()
+    Appear=auto()
+    Disappear=auto()
+
+@unique
+class BuiltinMusic(StrEnum):
+    """Music which can be played from the SmartSpeaker
+    """
+    TropicalPlaylist=auto()
+    DemoPlaylist=auto()
+    PianoPlaylist=auto()
+    LowfiPlaylist=auto()
+
+@unique
+class MusicInstruments(StrEnum):
+    """Available music instruments for the electric piano / keyboard."""
+    AcousticPiano=auto()
+
+@unique
+class AmmunitionTypes(StrEnum):
+    """Available ammunition types for artillery, grenades, high caliber rifles, etc"""
+    Explosive=auto()
+    #fire, smoke, emp, splinter
+
+@unique
+class Firearms(StrEnum):
+    """Personal firearms that can be equipped."""
+    Unarmed=auto()
+    Pistol=auto()
+    Rifle=auto()
+    Shotgun=auto()
+    MachineGun=auto()
+    RocketLauncher=auto()
+
+@unique
+class CosmeticItems(StrEnum):
+    """Personal cosmetic items that can be equipped."""
+    Hat_Tophat=auto()
+
 
 @unique
 class SpawnableVFX(StrEnum):
     """VFX which can be shown from the level editor
     """
     Explosion=auto()
+    Fireworks1=auto()
+    ColorBurst=auto()
 
 @unique
 class SpawnableImages(StrEnum):
-    """Images which can be shown from the level editor
+    """Images which can be shown from the level editor or used as material textures.
     """
-    JoyOfProgrammingLogo=auto()
+    Blank=""
+    TargetIndicator=auto()
+
+@unique
+class SpawnableVideos(StrEnum):
+    """Videos which can be shown from the level editor
+    """
+    ManimPrintHello=auto()
+    ManimForLoops=auto()
+    ManimConditionals=auto()
+    ManimVariables=auto()
 
 #modding: add to CodeMirror.class_static_hints and CodeMirror.all_enum_tooltips
+@unique
+class Colormaps(StrEnum):
+    """All colormaps available in matplotlib
+    """
+    viridis=auto()
+    plasma=auto()
+    inferno=auto()
+    magma=auto()
+    cividis=auto()
+    Greys=auto()
+    Purples=auto()
+    Blues=auto()
+    Greens=auto()
+    Oranges=auto()
+    Reds=auto()
+    YlOrBr=auto()
+    YlOrRd=auto()
+    OrRd=auto()
+    PuRd=auto()
+    RdPu=auto()
+    BuPu=auto()
+    GnBu=auto()
+    PuBu=auto()
+    YlGnBu=auto()
+    PuBuGn=auto()
+    BuGn=auto()
+    YlGn=auto()
+    binary=auto()
+    gist_yarg=auto()
+    gist_gray=auto()
+    gray=auto()
+    bone=auto()
+    pink=auto()
+    spring=auto()
+    summer=auto()
+    autumn=auto()
+    winter=auto()
+    cool=auto()
+    Wistia=auto()
+    hot=auto()
+    afmhot=auto()
+    gist_heat=auto()
+    copper=auto()
+    PiYG=auto()
+    PRGn=auto()
+    BrBG=auto()
+    PuOr=auto()
+    RdGy=auto()
+    RdBu=auto()
+    RdYlBu=auto()
+    RdYlGn=auto()
+    Spectral=auto()
+    coolwarm=auto()
+    bwr=auto()
+    seismic=auto()
+    twilight=auto()
+    twilight_shifted=auto()
+    hsv=auto()
+    Pastel1=auto()
+    Pastel2=auto()
+    Paired=auto()
+    Accent=auto()
+    Dark2=auto()
+    Set1=auto()
+    Set2=auto()
+    Set3=auto()
+    tab10=auto()
+    tab20=auto()
+    tab20b=auto()
+    tab20c=auto()
+    flag=auto()
+    prism=auto()
+    ocean=auto()
+    gist_earth=auto()
+    terrain=auto()
+    gist_stern=auto()
+    gnuplot=auto()
+    gnuplot2=auto()
+    CMRmap=auto()
+    cubehelix=auto()
+    brg=auto()
+    gist_rainbow=auto()
+    rainbow=auto()
+    jet=auto()
+    turbo=auto()
+    nipy_spectral=auto()
+    gist_ncar=auto()
+
+
+
+@unique
+class CsvDatasets(StrEnum):
+    """Tabular CSV datasets included with the game.
+    """
+    iris=auto()
+    """A small classic dataset about classifying 3 different iris plants. Contains 150 observations (50 per iris type) and 4 real-valued features (sepal length, sepal width, petal length, petal width) + 1 target class label (variety). Iris dataset (https://archive.ics.uci.edu/dataset/53/iris) by R.A. Fisher is licensed under CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/legalcode).
+    """
+    
+    winequality=auto()
+    """A dataset about wine quality based on physicochemical tests. Contains 6497 observations (unbalanced) and 11 real-valued features (fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, alcohol) and two categorical columns (color of the wine, quality label of the wine). Wine quality dataset (https://archive.ics.uci.edu/dataset/186/wine+quality) by Cortez et al is licensed under CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/legalcode), slightly modified by maschere."""
+    
+    titanic=auto()
+    """The original Titanic dataset, describing the survival status of individual passengers on the Titanic. Contains 1309 observations (passengers) with 8 features (pclass, sex, age, sibsp - number of siblings/spouses aboard, parch - number of parents/children aboard, fare, cabin, embarked) and 1 target label (survived 1 or 0). Slightly modified by maschere.
+
+    The titanic data does not contain information from the crew, but it does contain actual ages of half of the passengers. The principal source for data about Titanic passengers is the Encyclopedia Titanica. The datasets used here were begun by a variety of researchers. One of the original sources is Eaton & Haas (1994) Titanic: Triumph and Tragedy, Patrick Stephens Ltd, which includes a passenger list created by many researchers and edited by Michael A. Findlay.
+
+Thomas Cason of UVa has greatly updated and improved the titanic data frame using the Encyclopedia Titanica and created the dataset here. Some duplicate passengers have been dropped, many errors corrected, many missing ages filled in, and new variables created.
+
+For more information about how this dataset was constructed: http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/titanic3info.txt
+Titanic dataset from https://www.openml.org/d/40945 ."""
+
+    heartattack=auto()
+    """A dataset for heart attack risk prediction. 303 observations (patients) with 13 features:
+    Age : Age of the patient
+    Sex : gender of the patient
+    exang: exercise induced angina (1 = yes; 0 = no)
+    ca: number of major vessels (0-3)
+    cp : Chest Pain type chest pain type
+        Value 1: typical angina
+        Value 2: atypical angina
+        Value 3: non-anginal pain
+        Value 4: asymptomatic
+    trtbps : resting blood pressure (in mm Hg)
+    chol : cholestoral in mg/dl fetched via BMI sensor
+    fbs : (fasting blood sugar > 120 mg/dl) (1 = true; 0 = false)
+    rest_ecg : resting electrocardiographic results
+        Value 0: normal
+        Value 1: having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV)
+        Value 2: showing probable or definite left ventricular hypertrophy by Estes' criteria
+    thalach : maximum heart rate achieved
+    oldpeak: previous peak
+    slp: slope
+    caa: number of major vessels
+    thall: thal rate
+
+    Target variable is "output" with either 1 for increased heart attack risk or 0 for decreased heart attack risk.
+
+    Dataset obtained from https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-prediction-dataset?select=heart.csv by RASHIK RAHMAN licensed as public domain.
+    """
+
+    bikerental=auto()
+    """Bike Sharing dataset (https://archive.ics.uci.edu/dataset/275/bike+sharing+dataset) by Hadi Fanaee-T licensed under CC-BY 4.0 (). Contains 17379 hourly observations with the following features:
+    	- instant: record index
+        - dteday : date
+        - season : season (1:springer, 2:summer, 3:fall, 4:winter)
+        - yr : year (0: 2011, 1:2012)
+        - mnth : month ( 1 to 12)
+        - hr : hour (0 to 23)
+        - holiday : weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+        - weekday : day of the week
+        - workingday : if day is neither weekend nor holiday is 1, otherwise is 0.
+        + weathersit : 
+            - 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+            - 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+            - 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+            - 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+        - temp : Normalized temperature in Celsius. The values are divided to 41 (max)
+        - atemp: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+        - hum: Normalized humidity. The values are divided to 100 (max)
+        - windspeed: Normalized wind speed. The values are divided to 67 (max)
+        - casual: count of casual users
+        - registered: count of registered users
+        - cnt: count of total rental bikes including both casual and registered
+    """
