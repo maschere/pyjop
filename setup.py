@@ -8,6 +8,7 @@ import io
 import os
 import sys
 from shutil import rmtree
+import re
 
 from setuptools import find_packages, setup, Command
 
@@ -18,7 +19,7 @@ URL = 'https://store.steampowered.com/app/2216770/JOY_OF_PROGRAMMING__Software_E
 EMAIL = 'jop@prof-scherer.de'
 AUTHOR = 'Maximilian Scherer'
 REQUIRES_PYTHON = '>=3.10.0'
-VERSION = '0.3.1'
+VERSION = '0.5.2'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -69,6 +70,13 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
+
+#parse version from unreal source if it exists
+if os.path.exists("../Config/DefaultGame.ini"):
+    with open("../Config/DefaultGame.ini") as ini:
+        inicontent = ini.read() #ProjectVersion=0.4.2
+        if m := re.findall("ProjectVersion=(\d.+)",inicontent):
+            about['__version__'] = m[0]
 
 
 class UploadCommand(Command):
@@ -140,8 +148,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy'
+        'Programming Language :: Python :: Implementation :: CPython'
     ],
     # $ setup.py publish support.
     cmdclass={
