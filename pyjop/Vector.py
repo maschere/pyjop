@@ -236,7 +236,9 @@ Vector3.BACKWARD = Vector3(-1,0,0)
 
 
 class Rotator3(np.ndarray):
-
+    """3d rotator defined as roll, pitch, yaw in degrees around the forward x-axis.
+    """
+    
     TURN_LEFT:"Rotator3"
     TURN_RIGHT:"Rotator3"
     LOOK_UP:"Rotator3"
@@ -244,8 +246,7 @@ class Rotator3(np.ndarray):
     ROLL_CLOCKWISE:"Rotator3"
     ROLL_COUNTER_CLOCKWISE:"Rotator3"
     
-    """3d rotator defined as roll, pitch, yaw in degrees around the forward x-axis.
-    """
+    
     def __new__(cls, roll:list|tuple|np.ndarray|SupportsFloat=0.0, pitch:SupportsFloat=0.0, yaw:SupportsFloat=0.0) -> "Rotator3":                                  #pylint: disable=arguments-differ
 
         def read_array(X, Y, Z)->Rotator3:
@@ -348,6 +349,16 @@ class Rotator3(np.ndarray):
         """Get a rotator that faces in the opposite direction of this rotator."""
         return Rotator3.make_from_xforward(self.as_normal() * -1.0)
 
+    def get_unwinded(self) -> "Rotator3":
+        """Unwind this rotator to make sure all angles are between -180 and 180."""
+        unwind = self.copy()
+        for i in range(3):
+            while unwind[i] > 180:
+                unwind[i] -= 360.0
+            while unwind[i] < -180:
+                unwind[i] += 360.0
+        return unwind
+
 
     def __mul__(self, val) -> "Rotator3":
         return Rotator3(super().__mul__(val))
@@ -396,7 +407,7 @@ class Rotator3(np.ndarray):
             0,
             np.rad2deg(np.arctan2(v.z, np.sqrt(v.x*v.x + v.y*v.y))),
             np.rad2deg(np.arctan2(v.y,v.x)))
-        return rot
+        return rot.get_unwinded()
         
 
     @staticmethod
@@ -410,7 +421,7 @@ class Rotator3(np.ndarray):
         rot = Rotator3(0,pitch,yaw)
         m = Vector3(rot.make_rotation_matrix()[:,1])
         rot.roll = np.rad2deg(np.arctan2(newz.dot(m), newy.dot(m)))
-        return rot
+        return rot.get_unwinded()
 
     def make_rotation_matrix(self) -> np.ndarray:
         # Convert angles to radians

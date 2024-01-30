@@ -38,9 +38,11 @@ from datetime import datetime
 import inspect
 from queue import Queue
 from inspect import currentframe, getframeinfo
+from matplotlib import colormaps
 
 from pyjop.Enums import Colors
 from pyjop.Vector import Rotator3, Vector3
+
 
 class NPArray:
     """numpy array for transfer over tcp socket"""
@@ -134,6 +136,9 @@ class NPArray:
     def get_bool(self) -> bool:
         return int(self.array_data[0][0][0]) != 0
 
+    def get_float(self) -> float:
+        return float(self.array_data[0][0][0])
+
     
 
 
@@ -222,7 +227,7 @@ class EntityBase(Generic[T]):
             if k not in EntityBase._out_dict:
                 EntityBase._out_dict[k] = [arr]
             else:
-                EntityBase._out_dict[k].append(arr)
+                EntityBase._out_dict[k].append(arr) #TODO change append to also allow specific number of max appends
         else:
             EntityBase._out_dict[k] = [arr]
         EntityBase.sendlock.release()

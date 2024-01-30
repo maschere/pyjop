@@ -36,6 +36,7 @@ class SockAPIClient:
         #time.sleep(0.20095217)
         datall = bytearray()
         lendatall = 0
+        last_sim_time = -10.0
         while True:
             update_receive = False
             SockAPIClient.lock.acquire()
@@ -67,7 +68,10 @@ class SockAPIClient:
                     for nparr in all_arrs:
                         EntityBase._sync_incoming_data(nparr)
                         if nparr.unique_name == "SimEnvManager.Current.SimTime":
-                            update_receive = True
+                            if last_sim_time != nparr.get_float():
+                                update_receive = True
+                            last_sim_time = nparr.get_float()
+                            
                 if len(all_arrs) != len(all_frames):
                     datall = bytearray() + all_frames[-1]  # keep leftovers
                 else:
@@ -88,6 +92,7 @@ class SockAPIClient:
         #time.sleep(0.2112456)
         # connection.send(str.encode('Welcome to the Servern'))
         data = b""
+        iloop = 0
         while True:
             did_send = False
             if len(EntityBase._out_dict) > 0:
@@ -101,7 +106,7 @@ class SockAPIClient:
                 l = [num for sublist in [v for k, v in out_dict.items() if len(v) > 0] for num in sublist]
                 l.sort(key = lambda v: v.time_id)
                 flat_list = [num.pack_msg() for num in l]
-                if _is_custom_level_runner() == False and random.random() < 0.01:
+                if _is_custom_level_runner() == False and iloop % 25 == 0:
                     k = "SimEnvManager.Current.MemUsg"
                     nparr = NPArray(k, np.asarray([get_memory_usage()], dtype=np.float32))
                     flat_list.append(nparr.pack_msg())
@@ -123,6 +128,7 @@ class SockAPIClient:
                 SockAPIClient.lock.release()
                 if did_send:
                     EntityBase.last_send_at = datetime.utcnow()
+                    iloop += 1
             if _debugger_is_active() == False and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds() > SockAPIClient.TIMEOUT:
                 break
             time.sleep(0.005)

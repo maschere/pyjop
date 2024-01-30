@@ -89,26 +89,26 @@ def _sandbox_editor(event,arg):
     if type(event) != str: raise
     if event=='open':
         if len(arg)>1 and arg[1] and arg[1]!='r' and arg[1]!='rb':
-            print(event, arg)
+            #print(event, arg)
             raise PermissionError("Writing files forbidden.")
 
     if event == "socket.bind":
         if arg[1][0] != "127.0.0.1":
-            print(event, arg)
+            #print(event, arg)
             raise PermissionError("Socket binding not allowed")
     if event == "socket.connect" and not (len(arg)>1 and len(arg[1])>1 and arg[1][0] == "127.0.0.1"):
-        print(event, arg)
+        #print(event, arg)
         raise PermissionError("Network connections not allowed")
     if event.split('.')[0] in ['subprocess', 'shutil', 'ftplib']: 
-        print(event, arg)
+        #print(event, arg)
         raise PermissionError('potentially dangerous, subprocess, shutil, forbidden')
     if event.split('.')[0] == "winreg":
         cmd = event.split('.')[1]
         if cmd not in ["ConnectRegistry", "LoadKey", "OpenKey", "OpenKey/result", "QueryValue", "QueryInfoKey", "EnumKey", "EnumValue"]:
-            print(event, arg)
+            #print(event, arg)
             raise PermissionError('potentially dangerous, winreg forbidden')
     if event.split('.')[0] == "os" and event.split('.')[1] not in ["listdir", "scandir", "add_dll_directory", "putenv"]:
-        print(event, arg)
+        #print(event, arg)
         raise PermissionError('potentially dangerous, os access forbidden: ' + str(event))
     # if event == "compile":
     #     raise PermissionError('potentially dangerous, compile and exec forbidden')

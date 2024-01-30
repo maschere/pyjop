@@ -343,7 +343,7 @@ class ServiceDrone(EntityBase["ServiceDrone"]):
         self._set_float("setThrusterForceRight", force)
 
     def set_thruster_force_left(self, force: float):
-        """set the continuous force of the left thruster to the specified value in [-200,200] Newton (kg*m/s^2) but mass is ignored. Will be applied proportionally every frame.
+        """Set the continuous force of the left thruster to the specified value in [-200,200] Newton (kg*m/s^2) but mass is ignored. Will be applied proportionally every frame.
 
         Example:
             >>>
@@ -2526,6 +2526,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             rotation: tuple roll, pitch, yaw in degree
             scale: tuple x (forward), y (right), z (up) as factor
         """
+        raise NotImplementedError()
         args = _get_kwargs(locals())
         self._set_json(
             "SpawnEntity",
@@ -2608,46 +2609,49 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """
         return self._get_array_raw("Bounds" + unique_name, [2,3,1])
 
-    def set_location(self, unique_name: str, new_location: Tuple[float, float, float]):
-        """teleport / set the current location of the named entity/mesh that you spawned from the level editor.
+    def set_location(self, unique_name: str, new_location: Tuple[float, float, float], duration:float = 0.0):
+        """set the current location of the named entity/mesh that you spawned from the level editor.
         
         Args:
             unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
             new_location (vector): XYZ coordinates in meters.
+            duration (float): Defaults to 0 for instant location change / teleport. Values > 0 cause the entity to move to the target location
         """
         self._set_json(
-            "SetLocation", {"UniqueName": unique_name, "Location": _parse_vector(new_location)}, True
+            "SetLocation", {"UniqueName": unique_name, "Location": _parse_vector(new_location), "Duration": duration}, True
         )
 
-    def set_rotation(self, unique_name: str, new_rotation: Tuple[float, float, float]):
+    def set_rotation(self, unique_name: str, new_rotation: Tuple[float, float, float], duration:float = 0.0):
         """rotate the named entity/mesh that you spawned from the level editor.
         
         Args:
             unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
             new_rotation (Rotator3): roll,pitch,yaw angles in degrees.
+            duration (float): Defaults to 0 for instant rotation change. Values > 0 cause the entity to rotate to the target rotation
         """
         self._set_json(
-            "SetRotation", {"UniqueName": unique_name, "Rotation": _parse_vector(new_rotation)}, True
+            "SetRotation", {"UniqueName": unique_name, "Rotation": _parse_vector(new_rotation), "Duration": duration}, True
         )
-    def set_scale(self, unique_name: str, new_scale: Tuple[float, float, float]):
+    def set_scale(self, unique_name: str, new_scale: Tuple[float, float, float], duration:float = 0.0):
         """the the new size / scale of the named entity/mesh that you spawned from the level editor.
         
         Args:
             unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
             new_scale (vector): XYZ scale factor.
+            duration (float): Defaults to 0 for instant scale change. Values > 0 cause the entity to grow/shrink to the target scale
         """
         self._set_json(
-            "SetScale", {"UniqueName": unique_name, "Scale": _parse_vector(new_scale)}, True
+            "SetScale", {"UniqueName": unique_name, "Scale": _parse_vector(new_scale), "Duration": duration}, True
         )
-    def set_color(self, unique_name: str, color: Colors):
-        """the the new color of the named entity/mesh that you spawned from the level editor. Not all entities / meshes support custom colors
+    def set_color(self, unique_name: str, color: Colors, duration:float = 0.0):
+        """the the new color of the named entity/mesh that you spawned from the level editor. Not all entities / meshes / materials support custom colors.
         
         Args:
             unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
             color (Colors): new color to set.
         """
         self._set_json(
-            "SetColor", {"UniqueName": unique_name, "Color": _parse_color(color)}, True
+            "SetColor", {"UniqueName": unique_name, "Color": _parse_color(color), "Duration": duration}, True
         )
 
     def set_clickable(self, unique_name: str, is_clickable: bool):
@@ -2688,6 +2692,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
             {"UniqueName": unique_name, "bReadable": is_readable},
             True,
         )
+
+    #def set_temperature() TODO: temperature system
 
     def set_rfid_tag(self, unique_name: str, rfid_tag: str):
         """Set or add the rfid tag to the entity that you spawned from the level editor.
@@ -3062,6 +3068,19 @@ class LevelEditor(EntityBase["LevelEditor"]):
         raise NotImplementedError("Building / Budget system is WIP and not available yet.")
         self._set_json("SetBuildingArea", {"Center":_parse_vector(center), "Extends":_parse_vector(extends)})
 
+    def get_used_budget(self) -> float:
+        """Get the current budget used by the player. Negative amounts indicate a surplus."""
+        raise NotImplementedError("Building / Budget system is WIP and not available yet.")
+        return self._get_float("UsedBudget")
+
+    def get_current_money(self) -> float:
+        """Get the current amount of money the player has."""
+        return self._get_float("CurrentMoney")
+    def set_current_money(self, new_amount:float):
+        """Set the current amount of money the player has. Also useful as a proxy for some kind of winning score."""
+        self._set_float("SetCurrentMoney", new_amount)
+
+
 
     def set_template_code(self, new_code:str = "", from_line:int = -1, from_comment = ""):
         """Set the python template code for this level.
@@ -3074,12 +3093,15 @@ class LevelEditor(EntityBase["LevelEditor"]):
         if new_code:
             self._set_json("SetTemplateCode", {"SourceCode":new_code})
             return
-        import inspect
-        current_frame = inspect.currentframe()
-        source_code = []
-        if current_frame and current_frame.f_back:
-            with open(inspect.getmodule(current_frame.f_back).__file__) as f:
-                source_code = f.read().splitlines()
+        try:
+            source_code = []
+            import inspect
+            current_frame = inspect.currentframe()
+            if current_frame and current_frame.f_back:
+                with open(inspect.getmodule(current_frame.f_back).__file__, encoding='utf-8') as f:
+                    source_code = f.read().splitlines()
+        except:
+            pass
         if from_line > 0 and len(source_code) > from_line:
             self._set_json("SetTemplateCode", {"SourceCode":"\n".join(source_code[from_line:])})
             return
@@ -4809,7 +4831,7 @@ class Rocket(EntityBase["Rocket"]):
         """Detonate / self-destruct the rocket immediately."""
         self._set_void("Detonate")
 
-class Quadcopter(EntityBase["PlayingCard"]):
+class Quadcopter(EntityBase["Quadcopter"]):
     """A quadcopter drone with immediate thrust control."""
 
     def set_thruster_force_fl(self, new_thrust:float):
@@ -5099,6 +5121,20 @@ class AirliftCrane(EntityBase["AirliftCrane"]):
         """
         return self._get_bool("IsTransporting")
 
+# class RailwayTrain(EntityBase["AlarmClock"]):
+#     """A train on a railway track."""
+
+#     def set_throttle(self, new_throttle:float):
+#         self._set_float("SetThrottle", new_throttle)
+
+#     def set_emergency_brake(self, is_enabled:bool):
+#         self._set_bool("SetEmergencyBrake", is_enabled)
+
+#     def get_track_ahead(self) -> np.ndarray:
+#         pass # return next n spline points (position)
+
+#     def editor_set_track_ahead_range(self, num_points:int):
+#         self._set_int("SetTrackAheadRange", num_points)
 
 class AlarmClock(EntityBase["AlarmClock"]):
     """Programmable alarm clock.

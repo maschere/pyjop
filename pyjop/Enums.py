@@ -621,6 +621,10 @@ class SpawnableMeshes(StrEnum):
     Bag=auto()
     Hat1=auto()
     PaintingWide=auto()
+    Flower1=auto()
+    Flower2=auto()
+    Flower3=auto()
+    FlowerPot=auto()
 
 @unique
 class SpawnableMaterials(StrEnum):
