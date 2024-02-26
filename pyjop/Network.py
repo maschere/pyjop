@@ -92,7 +92,7 @@ class SockAPIClient:
         #time.sleep(0.2112456)
         # connection.send(str.encode('Welcome to the Servern'))
         data = b""
-        iloop = 0
+        iloop = 5
         while True:
             did_send = False
             if len(EntityBase._out_dict) > 0:
@@ -106,7 +106,7 @@ class SockAPIClient:
                 l = [num for sublist in [v for k, v in out_dict.items() if len(v) > 0] for num in sublist]
                 l.sort(key = lambda v: v.time_id)
                 flat_list = [num.pack_msg() for num in l]
-                if _is_custom_level_runner() == False and iloop % 25 == 0:
+                if _is_custom_level_runner() == False and iloop % 10 == 0:
                     k = "SimEnvManager.Current.MemUsg"
                     nparr = NPArray(k, np.asarray([get_memory_usage()], dtype=np.float32))
                     flat_list.append(nparr.pack_msg())

@@ -226,6 +226,11 @@ class Vector3(np.ndarray):
         """Create a rotator that corresponds to the direction in which this vectors points. Roll cannot be determined from this and will be zero.
         """
         return Rotator3.make_from_normal(self)
+
+    @staticmethod
+    def random(xmin=-1.0, xmax=1.0, ymin=-1.0, ymax=1.0, zmin=-1.0, zmax=1.0) -> "Vector3":
+        """Generate a new random vector within the specified bounds."""
+        return Vector3(np.random.uniform(xmin,xmax), np.random.uniform(ymin,ymax), np.random.uniform(zmin,zmax))
         
 Vector3.UP = Vector3(0,0,1)
 Vector3.RIGHT = Vector3(0,1,0)

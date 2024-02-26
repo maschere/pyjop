@@ -502,20 +502,20 @@ class SpawnableMaps(StrEnum):
 class SpawnableEntities(StrEnum):
     """entities which can be spawned in the level editor
     """
-    AirstrikeControl=auto()
+    #AirstrikeControl=auto()
     ArcadeMachine=auto()
     Artillery=auto()
-    CarvingRobot=auto()
-    ColorCubePuzzle=auto()
+    #CarvingRobot=auto()
+    #ColorCubePuzzle=auto()
     ConveyorBelt=auto()
     DataExchange=auto()
     Deliverable=auto()
     ObjectSpawner=auto()
     DeliveryContainer=auto()
     DialupPhone=auto()
-    Elevator=auto()
+    #Elevator=auto()
     GPSWaypoint=auto()
-    GunTurret=auto()
+    #GunTurret=auto()
     HumanoidRobot=auto()
     InputBox=auto()
     Killzone=auto()
@@ -524,16 +524,16 @@ class SpawnableEntities(StrEnum):
     LaunchPad=auto()
     Maze=auto()
     MovablePlatform=auto()
-    PaintableCanvas=auto()
+    #PaintableCanvas=auto()
     Piano=auto()
     PinHacker=auto()
-    PlanarRobotCrane=auto()
-    PoolTable=auto()
+    #PlanarRobotCrane=auto()
+    #PoolTable=auto()
     PullerRobot=auto()
     PushButton=auto()
     PusherRobot=auto()
-    RadarTrap=auto()
-    RailConveyorBelt=auto()
+    #RadarTrap=auto()
+    #RailConveyorBelt=auto()
     RangeFinder=auto()
     RemoteExplosive=auto()
     RobotArm=auto()
@@ -552,19 +552,18 @@ class SpawnableEntities(StrEnum):
     SmartWall=auto()
     SniperRifle=auto()
     ToggleSwitch=auto()
-    TrafficLight=auto()
+    #TrafficLight=auto()
     TriggerZone=auto()
     TurnableConveyorBelt=auto()
-    VacuumRobot=auto()
+    #VacuumRobot=auto()
     VoxelBuilder=auto()
-    WineData=auto()
     AirliftCrane=auto()
     PlayingCard=auto()
     DigitalScale=auto()
     AlarmClock=auto()
     SimplePhysicsCar=auto()
     RaceCar=auto()
-    PostProcessVolume=auto()
+    #PostProcessVolume=auto()
     ProximitySensor=auto()
     AlarmSiren=auto()
 
@@ -625,7 +624,25 @@ class SpawnableMeshes(StrEnum):
     Flower2=auto()
     Flower3=auto()
     FlowerPot=auto()
+    Bench=auto()
+    Chair=auto()
+    OfficeChair=auto()
+    Table=auto()
+    TableRound=auto()
+    Postbox=auto()
 
+@unique
+class VerbosityLevels(IntEnum):
+    """Verbosity level of the pyjop interface. Higher values mean more verbose information."""
+    Critical=0
+    """Basically nothing gets printed to the log window. Use with caution, you might miss important information."""
+    Important=1
+    """Print only important messages to the log window like warnings and error messages."""
+    Info=2
+    """Print almost all information to the log window. Default setting."""
+    Debug=3
+    """Print everything to the log window. """
+    
 @unique
 class SpawnableMaterials(StrEnum):
     """Materials which can be spawned in the level editor

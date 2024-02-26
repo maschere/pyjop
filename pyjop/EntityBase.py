@@ -40,7 +40,7 @@ from queue import Queue
 from inspect import currentframe, getframeinfo
 from matplotlib import colormaps
 
-from pyjop.Enums import Colors
+from pyjop.Enums import Colors, VerbosityLevels
 from pyjop.Vector import Rotator3, Vector3
 
 
@@ -205,6 +205,8 @@ class EntityBase(Generic[T]):
     """Base class for all entities in the SimEnv. Use Find or FindAll to get the entities you want to control and program them."""
 
     _out_dict: Dict[str, List[NPArray]] = dict()
+    _out_time_dict: Dict[str, Tuple[int,int]] = dict()
+    _in_time_dict: Dict[str, Tuple[int,int]] = dict()
     _in_dict: Dict[str, NPArray] = dict()
     _entity_dict: Dict[str, "EntityBase"] = dict()
     _custom_classes: Dict[str, Type["EntityBase"]] = dict()
@@ -220,17 +222,37 @@ class EntityBase(Generic[T]):
     _event_queue: Queue[Tuple[NPArray,Callable[[T,float, Any],None]]] = Queue()
 
     @staticmethod
-    def _set_out_data(k:str, arr:NPArray, append=False):
+    def _set_out_data(k:str, arr:NPArray, append=False, max_appends=0):
         EntityBase.sendlock.acquire()
         arr.time_id = next(NPArray.time_id_it)
+        needs_await = False
         if append:
             if k not in EntityBase._out_dict:
                 EntityBase._out_dict[k] = [arr]
             else:
                 EntityBase._out_dict[k].append(arr) #TODO change append to also allow specific number of max appends
+                if max_appends>0 and len(EntityBase._out_dict[k]) > max_appends:
+                    needs_await = True
         else:
             EntityBase._out_dict[k] = [arr]
         EntityBase.sendlock.release()
+        if needs_await:
+            _dispatch_events()
+            await_receive()
+        if not append and not k.startswith("SimEnvManager.Current"):
+            t0,c0 = 0,0
+            if k in EntityBase._out_time_dict:
+                t0,c0 = EntityBase._out_time_dict[k]
+            t1 = time.time_ns()
+            if t1 < t0 + 3*1e6: #3ms
+                EntityBase._out_time_dict[k] = (t1,c0+1)
+                if c0 > 20:
+                    EntityBase._log_debug_static(f"Setter rate limit: use sleep() or SimEnv.run_main() to repeatedly call commands like '{k}'", Colors.Yellow)
+                    _dispatch_events()
+                    await_receive()
+            else:
+                EntityBase._out_time_dict[k] = (t1,0)
+                
 
     @staticmethod
     def _sync_incoming_data(nparr: NPArray):
@@ -400,6 +422,20 @@ class EntityBase(Generic[T]):
         # stuff to do after each api call
         self._log_line_number()
 
+    def _check_get_rate(self, k:str):
+        t0,c0 = 0,0
+        if k in EntityBase._in_time_dict:
+            t0,c0 = EntityBase._in_time_dict[k]
+        t1 = time.time_ns()
+        if t1 < t0 + 3*1e6: #3ms
+            EntityBase._in_time_dict[k] = (t1,c0+1)
+            if c0 >= 20:
+                EntityBase._log_debug_static(f"Getter rate limit: use sleep() or SimEnv.run_main() to repeatedly get data such as '{k}'", Colors.Yellow)
+                _dispatch_events()
+                await_receive()
+        else:
+            EntityBase._in_time_dict[k] = (t1,0)
+
     def _build_name(self, prop_name="") -> str:
         # if self.IsValid() == False:
         #    raise KeyError(f"entity '{self.entityName}' was removed from the game. Please use IsValid and Find get updated references.")
@@ -422,6 +458,7 @@ class EntityBase(Generic[T]):
     def _get_array_raw(self, prop_name:str, shape:List[int] = [0,0,0]) -> np.ndarray:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             squeeze_axe = []
             shape = list(shape)
@@ -438,6 +475,7 @@ class EntityBase(Generic[T]):
     def _get_float(self, prop_name: str) -> float:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return float(self._in_dict[k].array_data[0][0][0])
         if not _is_custom_level_runner():
@@ -447,6 +485,7 @@ class EntityBase(Generic[T]):
     def _get_vector3d(self, prop_name: str) -> Vector3:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return Vector3(self._in_dict[k].array_data.squeeze()[:3])
         if not _is_custom_level_runner():
@@ -456,6 +495,7 @@ class EntityBase(Generic[T]):
     def _get_rotator3d(self, prop_name: str) -> Rotator3:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return Rotator3(self._in_dict[k].array_data.squeeze()[:3])
         if not _is_custom_level_runner():
@@ -466,6 +506,7 @@ class EntityBase(Generic[T]):
     def _get_uint8(self, prop_name: str) -> int:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return int(self._in_dict[k].array_data[0][0][0])
         if not _is_custom_level_runner():
@@ -475,8 +516,9 @@ class EntityBase(Generic[T]):
     def _get_int(self, prop_name: str) -> int:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
-            return int.from_bytes(self._in_dict[k].array_data.squeeze().tobytes(), "little")
+            return int.from_bytes(self._in_dict[k].array_data.squeeze().tobytes(), "little", signed=True)
         
         if not _is_custom_level_runner():    
             EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
@@ -485,6 +527,7 @@ class EntityBase(Generic[T]):
     def _get_bool(self, prop_name: str) -> bool:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return int(self._in_dict[k].array_data[0][0][0]) != 0
         if not _is_custom_level_runner():
@@ -494,6 +537,7 @@ class EntityBase(Generic[T]):
     def _get_string(self, prop_name: str) -> str:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return (self._in_dict[k].get_string())  # check if ascii
         if not _is_custom_level_runner():    
@@ -503,6 +547,7 @@ class EntityBase(Generic[T]):
     def _get_json(self, prop_name: str, suppress_warn = False) -> dict[str, Any]:
         k = self._build_name(prop_name)
         if k in self._in_dict:
+            self._check_get_rate(k)
             self._post_API_call()
             return self._in_dict[k].get_json_dict()
         if not _is_custom_level_runner() and not suppress_warn:
@@ -545,7 +590,7 @@ class EntityBase(Generic[T]):
     def _set_int(self, prop_name: str, val: int, append: bool = False) -> None:
         k = self._build_name(prop_name)
         nparr = NPArray(
-            k, np.frombuffer(int.to_bytes(val, 4, "little"), dtype=np.uint8)
+            k, np.frombuffer(int.to_bytes(val, 4, "little", signed=True), dtype=np.uint8)
         )
         # check duplicate here
 
@@ -592,6 +637,7 @@ class EntityBase(Generic[T]):
             and len(self._in_dict[k].array_data.shape) == 3
             and self._in_dict[k].array_data.shape[2] >= channels
         ):
+            self._check_get_rate(k)
             if channels == 3:
                 return self._in_dict[k].array_data[:, :, (2, 1, 0)] + 1 - 1  # but why?
             if channels == 2:
@@ -701,13 +747,13 @@ class EntityBase(Generic[T]):
         self._post_API_call()
 
     @staticmethod
-    def _log_debug_static(msg: str, col=Colors.White):
+    def _log_debug_static(msg: str, col=Colors.White, log_level = VerbosityLevels.Important):
         """log a debug message into Python and into the SimEnv"""
-        jsonDict = {"msg": msg, "col": _parse_color(col)}
+        jsonDict = {"msg": msg, "col": _parse_color(col), "level": int(log_level)}
         k = "SimEnvManager.Current.LogDebug"
         bytes = json.dumps(jsonDict, ensure_ascii=False).encode("utf-8")
         nparr = NPArray(k, np.frombuffer(bytes, dtype=np.uint8))
-        EntityBase._set_out_data(k, nparr, True)
+        EntityBase._set_out_data(k, nparr, True, 30)
         
         EntityBase._log_line_number()
 
