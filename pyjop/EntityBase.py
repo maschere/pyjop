@@ -339,7 +339,7 @@ class EntityBase(Generic[T]):
 
     @classmethod
     def find(cls, entity_name: str, suppress_warnings=False) -> T:
-        """Find entity of the current type (or its derivatives) by its unique name. Entity names always start with "_entity" by default.
+        """Find entity of the current type (or its derivatives) by its unique name.
 
         Example:
             >>>
@@ -1041,7 +1041,7 @@ def _hex_to_rgb(hex_string:str):
 
 
 def _parse_color(color_arg, as_dict=False)->tuple[float,float,float] | dict[str,float]:
-    if not color_arg:
+    if color_arg is None or (type(color_arg) is str and color_arg == ""):
         return {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0} if as_dict else (1.0,1.0,1.0)#default color white
     if type(color_arg) is str and color_arg in Colors:
         color_arg = Colors[color_arg]
@@ -1051,6 +1051,8 @@ def _parse_color(color_arg, as_dict=False)->tuple[float,float,float] | dict[str,
         color_arg = _hex_to_rgb(color_arg)
     if type(color_arg) is dict:
         color_arg = [color_arg["r"],color_arg["g"],color_arg["b"]]
+    if not hasattr(color_arg, "__len__"):
+        color_arg = (color_arg, color_arg, color_arg)
     if len(color_arg) > 3:
         color_arg = color_arg[:3]
     if max(color_arg) > 1 and type(color_arg[0]) is int and type(color_arg[1]) is int and type(color_arg[2]) is int:

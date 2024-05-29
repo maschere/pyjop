@@ -1,5 +1,5 @@
 from enum import Enum, EnumMeta,auto, unique
-
+import random
 class MetaEnum(EnumMeta):
     def __contains__(cls, item):
         try:
@@ -360,6 +360,11 @@ class Colors(ColorEnum):
     Yellow=(1.0, 1.0, 0.0)
     Yellowgreen=(0.6039215686274509, 0.803921568627451, 0.19607843137254902)
 
+    @staticmethod
+    def random() -> tuple[float,float,float]:
+        """Get a random RGB color."""
+        return (random.random(),random.random(),random.random(),)
+
 
 
 @unique
@@ -566,6 +571,7 @@ class SpawnableEntities(StrEnum):
     #PostProcessVolume=auto()
     ProximitySensor=auto()
     AlarmSiren=auto()
+    SurveillanceSatellite=auto()
 
 @unique
 class SpawnableMeshes(StrEnum):
@@ -630,6 +636,10 @@ class SpawnableMeshes(StrEnum):
     Table=auto()
     TableRound=auto()
     Postbox=auto()
+    Bottle1=auto()
+    Bottle2=auto()
+    Bottle3=auto()
+    WoodenBox=auto()
 
 @unique
 class VerbosityLevels(IntEnum):
@@ -723,6 +733,10 @@ class SpawnableVFX(StrEnum):
     Explosion=auto()
     Fireworks1=auto()
     ColorBurst=auto()
+    Rain=auto()
+    Distortion=auto()
+    Sparks=auto()
+    WaterJet=auto()
 
 @unique
 class SpawnableImages(StrEnum):

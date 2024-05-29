@@ -228,6 +228,17 @@ class Vector3(np.ndarray):
         return Rotator3.make_from_normal(self)
 
     @staticmethod
+    def distance_to_line(a:"Vector3", b:"Vector3", c:"Vector3") -> float:
+        """Return the distance of point c from the line between a and b.
+
+        Args:
+            a (Vector3): one point on the line
+            b (Vector3): another point on the line
+            c (Vector3): point in space
+        """
+        return (c - a).cross(c - b).length / (b-a).length
+
+    @staticmethod
     def random(xmin=-1.0, xmax=1.0, ymin=-1.0, ymax=1.0, zmin=-1.0, zmax=1.0) -> "Vector3":
         """Generate a new random vector within the specified bounds."""
         return Vector3(np.random.uniform(xmin,xmax), np.random.uniform(ymin,ymax), np.random.uniform(zmin,zmax))

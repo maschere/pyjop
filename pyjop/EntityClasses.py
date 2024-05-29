@@ -54,7 +54,7 @@ class ConveyorBelt(EntityBase["ConveyorBelt"]):
             else: #not transporting, so stop moving
                 conv.set_target_speed(0)
         """
-        self._set_float("setTargetSpeed", float(np.clip(speed, -5.0, 5.0)))
+        self._set_float("setTargetSpeed", float(speed))
 
     def get_is_transporting(self) -> bool:
         """Returns True if the belt is currently transporting something, else False
@@ -161,6 +161,16 @@ class MovablePlatform(EntityBase["MovablePlatform"]):
         """[Level Editor only] Enable or disable blocking collisions on movement. Default is enabled. Disabled allows clipping through walls.
         """
         self._set_bool("setBlockCollisions", is_enabled)
+
+    def editor_set_movement_speed(self, new_speed:float):
+        """[Level Editor only] Change the movement speed of the platform in [0,100].
+        """
+        self._set_float("setMovementSpeed", new_speed)
+
+    def editor_set_rotation_speed(self, new_speed:float):
+        """[Level Editor only] Change the rotation speed of the platform in [0,50].
+        """
+        self._set_float("setRotationSpeed", new_speed)
 
     def attach_entities(self):
         """Attach all entities currently on top of the platform.
@@ -652,7 +662,13 @@ class RangeFinder(EntityBase["RangeFinder"]):
         self._set_string("setRfidTag", rfid_tag)
 
     def get_feature_data(self) -> dict[str, Any]:
-        """Get any other features of the currently hit entity.
+        """Get any other features of the currently hit entity. Mostly used in machine learning levels.
+
+        Example:
+            >>>
+            rf = RangeFinder.first()
+            x = rf.get_feature_data()
+            print(x)
         """
         return self._get_json("FeatureData")
 
@@ -1120,7 +1136,7 @@ def show_nicegui(title="My Nice GUI", width=800, height=600):
         return '<div style="display: none">a<div>'
     bla = ui.html('<div style="display: none">a<div>')
     bla.bind_content_from(EntityBase,"last_receive_at",backward= upd)
-    print("If nicegui does not shoe and you receive an error, please go the Pause Menu -> Options -> Game and click 'Fix NiceGUI'.", col=Colors.Yellow, log_level=VerbosityLevels.Important)
+    print("If nicegui does not show and you receive an error, please go the Pause Menu -> Options -> Game and click 'Fix NiceGUI'.", col=Colors.Yellow, log_level=VerbosityLevels.Important)
     ui.run(
         host="127.0.0.1",
         port=18085,
@@ -1485,7 +1501,7 @@ class SmartCamera(EntityBase["SmartCamera"]):
 
         Example:
             >>>
-            img =  SmartCamera.first().get_camera_frame()
+            img = SmartCamera.first().get_camera_frame()
             #print the image size (HxWxC)
             print(img.shape)
             #print the image contents
@@ -1982,7 +1998,7 @@ class DigitalScale(EntityBase["DigitalScale"]):
             print(f"avg weight of {w/c} kg")
         """
         return self._get_float("Count")
-show_nicegui
+
 
 class PinHacker(EntityBase["PinHacker"]):
     """Brute force hacking device for PIN numbers."""
@@ -1997,9 +2013,9 @@ class PinHacker(EntityBase["PinHacker"]):
             #wait for the hacker to process and send results back. duration depends on your tick rate.
             sleep() #sleep without a duration waits for a complete round-trip
             #check the results
-            if hacker.get_is_correct(p):
+            if hacker.get_is_correct():
                 print(str(p) + " is correct!")
-            elif hacker.get_is_greater(p):
+            elif hacker.get_is_greater():
                 print(str(p) + " is greater than the real pin!")
             else:
                 print(str(p) + " is smaller than the real pin!")
@@ -2016,9 +2032,9 @@ class PinHacker(EntityBase["PinHacker"]):
             #wait for the hacker to process and send results back. duration depends on your tick rate.
             sleep() #sleep without a duration waits for a complete round-trip
             #check the results
-            if hacker.get_is_correct(p):
+            if hacker.get_is_correct():
                 print(str(p) + " is correct!")
-            elif hacker.get_is_greater(p):
+            elif hacker.get_is_greater():
                 print(str(p) + " is greater than the real pin!")
             else:
                 print(str(p) + " is smaller than the real pin!")
@@ -2035,9 +2051,9 @@ class PinHacker(EntityBase["PinHacker"]):
             #wait for the hacker to process and send results back. duration depends on your tick rate.
             sleep() #sleep without a duration waits for a complete round-trip
             #check the results
-            if hacker.get_is_correct(p):
+            if hacker.get_is_correct():
                 print(str(p) + " is correct!")
-            elif hacker.get_is_greater(p):
+            elif hacker.get_is_greater():
                 print(str(p) + " is greater than the real pin!")
             else:
                 print(str(p) + " is smaller than the real pin!")
@@ -2070,7 +2086,7 @@ class PinHacker(EntityBase["PinHacker"]):
 class VoxelBuilder(EntityBase["VoxelBuilder"]):
     """Spawn voxels / cubes / boxes at the specified location and the specified color."""
 
-    def build_voxel(self, location:Vector3|Sequence[float] = (0.0, 0.0, 0.0), color=Colors.Grey, simulate_physics=True):
+    def build_voxel(self, location:Vector3|Sequence[float] = (0.0, 0.0, 0.0), color=Colors.Grey, simulate_physics=False):
         """Spawn voxels / cubes / boxes at the specified location and the specified color. Asynchronous, so you need to call sleep() in-between calls to build()
 
         Args:
@@ -2308,6 +2324,35 @@ class LevelEditor(EntityBase["LevelEditor"]):
                 "Image": str(texture),
                 "Weight": float(weight),
                 "bSpawnEffect":spawn_effect
+            },
+            True,
+        )  # mark as placement spawn in-game
+
+
+    def spawn_destructible(self,
+        unique_name="",
+        location = Vector3(0), rotation = Rotator3(0), scale = Vector3(1),
+        color:Colors = Colors.Darkgray,
+        rfid_tag = ""
+    ):
+        """Spawn a destructible cube. Will burst into small pieces upon receiving damage from physical impacts. Note that destructibles are always consider temporary objects and will be cleaned up on reset. Re-spawn them after reset if required.
+
+        Args:
+            unique_name (str): optional unique name for the destructible. Should only be non-empty if you need access to this via script later, e.g. to query destruction status.
+            color (tuple): RGB color to apply to the material. Either RGB tuple or Colors name
+            location: tuple x (forward), y (right), z (up) in meters
+            rotation: tuple roll, pitch, yaw in degree
+            scale: tuple x (forward), y (right), z (up) as factor. Scales != 1 might cause weird physics behavior, particularly non-uniform scales.
+            rfid_tag (str, optional): Directly assign the supplied string as the RFID tag for this destructible. Defaults to "". See also set_rfid_tag.
+        """
+        args = _get_kwargs(locals())
+
+        self._set_json(
+            "SpawnDestructible",
+            args
+            | {
+                "EntityClass": "StaticMesh",
+                "UniqueName": unique_name,
             },
             True,
         )  # mark as placement spawn in-game
@@ -2716,6 +2761,14 @@ class LevelEditor(EntityBase["LevelEditor"]):
             unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
         """
         return self._get_array_raw("Bounds" + unique_name, [2,3,1])
+
+    def get_destruction(self, unique_name: str) -> Vector3:
+        """get the current destruction amount (in [0,1]) of the named destructible that you spawned from the level editor.
+        
+        Args:
+            unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
+        """
+        return self._get_vector3d("Destruction" + unique_name)
 
     def set_location(self, unique_name: str, new_location: Tuple[float, float, float], duration:float = 0.0):
         """set the current location of the named entity/mesh that you spawned from the level editor.
@@ -3734,6 +3787,8 @@ class SmartLiDAR(EntityBase["SmartLiDAR"]):
         return self._get_array_raw("LidarData",[0,4,1])
 
 
+
+
 class ProximityData(BaseEventData):
     """Event data returned by a proximity sensor."""
 
@@ -3814,6 +3869,30 @@ class MotionDetector(EntityBase["MotionDetector"]):
                 handler(sender,gametime,coll)
 
         self._add_event_listener("_eventOnMovement", wrapper)
+
+
+class SatelliteData(BaseEventData):
+    """Data returned by a satellite."""
+
+    def __init__(self, new_vals: "dict[str, Any]"):
+        super().__init__(new_vals)
+
+        self.world_location:Vector3 = Vector3(_parse_vector(new_vals["worldLocation"]))
+        """Precise world location of the detected object."""
+
+class SurveillanceSatellite(EntityBase["SurveillanceSatellite"]):
+    """Eye in the sky. Surveillance satellite that can scan objects for their precise world location."""
+    def get_satellite_data(self) -> List["SatelliteData"]:
+        """Get data for all objects on the map. Returns a list of SatelliteData for each object.
+
+        Example:
+            >>>
+            sat = SurveillanceSatellite.first()
+            readings = sat.get_satellite_data()
+            for dat in readings:
+                print(f"{dat.entity_type} at {dat.world_location}")
+        """
+        return [SatelliteData(d) for d in self._get_json("SatelliteData")["items"]]
 
 
 class Thermometer(EntityBase["Thermometer"]):
@@ -4281,7 +4360,11 @@ class InputBox(EntityBase["InputBox"]):
             ibox = InputBox.first()
             ibox.set_text("some text")
         """
-        self._set_string("SetText", new_text)
+        new_text = str(new_text)
+        if new_text.strip():
+            self._set_string("SetText", new_text)
+        else:
+            self._set_void("ClearText")
 
     def get_text(self) -> str:
         """Gets the current text.
@@ -5293,10 +5376,6 @@ class AlarmClock(EntityBase["AlarmClock"]):
         """
         return self._get_string("CurrentTime")
 
-    def editor_set_can_edit(self, is_enabled:bool):
-        """Allow or prevent the user from changing the time settings on this clock."""
-        self._set_bool("setCanEdit",is_enabled)
-
     def set_is_running(self, is_enabled:bool):
         """Stop or run the clock.
         
@@ -5319,7 +5398,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         """Sets the time when the alarm clock will trigger an alarm.
 
         Args:
-            alarm_time (float): Alarm time as total hours from midnight in [0,24[
+            alarm_time (float): Alarm time as total hours from midnight in [0,24]
 
         Example:
             >>>
@@ -5343,11 +5422,6 @@ class AlarmClock(EntityBase["AlarmClock"]):
             c.set_current_time(6)
             #set alarm to 8 p.m.
             c.set_current_time(20)
-            #set time to current system time
-            t = datetime.now().time()
-            # Convert the time to total hours
-            total_hours = t.hour + t.minute / 60.0 + t.second / 3600.0
-            c.set_current_time(total_hours)
         """
         import datetime
         time.time
@@ -5370,7 +5444,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         def wrapper(sender:AlarmClock, gametime:float, nparr:NPArray):
             handler(sender, gametime)
 
-        self._add_event_listener("_eventOnBulletHit",wrapper)
+        self._add_event_listener("_eventOnAlarm", wrapper)
 
 
 class SimplePhysicsCar(EntityBase["SimplePhysicsCar"]):
