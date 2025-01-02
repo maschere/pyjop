@@ -1,27 +1,26 @@
-import time
-import numpy as np
-import threading
-import socket
+import copy
 import errno
+import inspect
+import math
+import socket
 import sys
-
-
-from psutil import Process
-from os import getpid
-from gc import collect
+import threading
+import time
 from datetime import datetime
+from gc import collect
+from os import getpid
+
+import numpy as np
+from psutil import Process
+
 from pyjop.EntityBase import (
     EntityBase,
     NPArray,
+    _debugger_is_active,
+    _dispatch_events,
     _find_all_entity_classes_rec,
     _is_custom_level_runner,
-    _dispatch_events,
-    _debugger_is_active
 )
-import copy
-import inspect
-import random
-import math
 
 
 class SockAPIClient:
@@ -33,7 +32,7 @@ class SockAPIClient:
     @staticmethod
     def threaded_receive(connection: socket.socket):
         # connection.send(str.encode('Welcome to the Servern'))
-        #time.sleep(0.20095217)
+        # time.sleep(0.20095217)
         datall = bytearray()
         lendatall = 0
         last_sim_time = -10.0
@@ -46,7 +45,7 @@ class SockAPIClient:
                     if len(datall) == lendatall:
                         break
                     lendatall = len(datall)
-            except socket.error as e:
+            except OSError as e:
                 if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
                     SockAPIClient.lock.release()
                     break
@@ -71,13 +70,17 @@ class SockAPIClient:
                             if last_sim_time != nparr.get_float():
                                 update_receive = True
                             last_sim_time = nparr.get_float()
-                            
+
                 if len(all_arrs) != len(all_frames):
                     datall = bytearray() + all_frames[-1]  # keep leftovers
                 else:
                     datall = bytearray()
 
-            if _debugger_is_active() == False and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds() > SockAPIClient.TIMEOUT:
+            if (
+                _debugger_is_active() == False
+                and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds()
+                > SockAPIClient.TIMEOUT
+            ):
                 break
             time.sleep(0.005)
             EntityBase._clean_entity_dict()
@@ -89,7 +92,7 @@ class SockAPIClient:
 
     @staticmethod
     def threaded_send(connection: socket.socket):
-        #time.sleep(0.2112456)
+        # time.sleep(0.2112456)
         # connection.send(str.encode('Welcome to the Servern'))
         data = b""
         iloop = 5
@@ -103,14 +106,21 @@ class SockAPIClient:
                 # out_items = out_dict.items()
 
                 # pack data sequentially
-                l = [num for sublist in [v for k, v in out_dict.items() if len(v) > 0] for num in sublist]
-                l.sort(key = lambda v: v.time_id)
+                l = [
+                    num
+                    for sublist in [v for k, v in out_dict.items() if len(v) > 0]
+                    for num in sublist
+                ]
+                l.sort(key=lambda v: v.time_id)
                 flat_list = [num.pack_msg() for num in l]
                 if _is_custom_level_runner() == False and iloop % 10 == 0:
                     k = "SimEnvManager.Current.MemUsg"
-                    nparr = NPArray(k, np.asarray([get_memory_usage()], dtype=np.float32))
+                    nparr = NPArray(
+                        k,
+                        np.asarray([get_memory_usage()], dtype=np.float32),
+                    )
                     flat_list.append(nparr.pack_msg())
-                
+
                 data = b"".join(flat_list)
 
                 SockAPIClient.lock.acquire()
@@ -121,7 +131,7 @@ class SockAPIClient:
                         did_send = True
                         # print("sent " + str(len_sent))
                         data = data[len_sent:]
-                except socket.error as e:
+                except OSError as e:
                     if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
                         SockAPIClient.lock.release()
                         break
@@ -129,7 +139,11 @@ class SockAPIClient:
                 if did_send:
                     EntityBase.last_send_at = datetime.utcnow()
                     iloop += 1
-            if _debugger_is_active() == False and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds() > SockAPIClient.TIMEOUT:
+            if (
+                _debugger_is_active() == False
+                and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds()
+                > SockAPIClient.TIMEOUT
+            ):
                 break
             time.sleep(0.005)
             # log.info("sent")
@@ -137,7 +151,7 @@ class SockAPIClient:
         connection.close()
 
     @staticmethod
-    def _force_send_manual(connection: socket.socket, *args:NPArray):
+    def _force_send_manual(connection: socket.socket, *args: NPArray):
         flat_list = [num.pack_msg() for num in args]
         data = b"".join(flat_list)
 
@@ -146,24 +160,31 @@ class SockAPIClient:
             while len(data) > 0:
                 len_sent = connection.send(data)
                 data = data[len_sent:]
-        except socket.error as e:
+        except OSError as e:
             if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
                 return
-            
+
     @staticmethod
     def _debug_pause():
-        SockAPIClient._force_send_manual(SimEnv._client_socket, NPArray("SimEnvManager.Current.setTimeDilation", np.asarray([0], dtype=np.float32)))
-        
+        SockAPIClient._force_send_manual(
+            SimEnv._client_socket,
+            NPArray(
+                "SimEnvManager.Current.setTimeDilation",
+                np.asarray([0], dtype=np.float32),
+            ),
+        )
+
         out_dict = copy.deepcopy(EntityBase._out_dict)
         EntityBase._out_dict = dict()
-        l = [num for sublist in [v for k, v in out_dict.items() if len(v) > 0] for num in sublist]
-        l.sort(key = lambda v: v.time_id)
-        SockAPIClient._force_send_manual(SimEnv._client_socket,*l)
+        l = [
+            num
+            for sublist in [v for k, v in out_dict.items() if len(v) > 0]
+            for num in sublist
+        ]
+        l.sort(key=lambda v: v.time_id)
+        SockAPIClient._force_send_manual(SimEnv._client_socket, *l)
         EntityBase._is_debug_paused = True
-        
 
-        
-        
 
 class SimEnv:
     """Python class for communicating with the current Simulation Environment. Use the SimEnvManager class once you are connected."""
@@ -173,7 +194,7 @@ class SimEnv:
 
     @staticmethod
     def connect(host="127.0.0.1", port=18189) -> bool:
-        """connect to the SimEnv instance. returns true on success.
+        """Connect to the SimEnv instance. returns true on success.
 
         Args:
             host (str, optional): Host pc running the SimEnv. Defaults to localhost at "127.0.0.1".
@@ -197,23 +218,27 @@ class SimEnv:
 
         client_socket = socket.socket()
         client_socket.setsockopt(
-            socket.SOL_SOCKET, socket.SO_SNDBUF, SockAPIClient.BUF_SIZE
+            socket.SOL_SOCKET,
+            socket.SO_SNDBUF,
+            SockAPIClient.BUF_SIZE,
         )
         client_socket.setsockopt(
-            socket.SOL_SOCKET, socket.SO_RCVBUF, SockAPIClient.BUF_SIZE
+            socket.SOL_SOCKET,
+            socket.SO_RCVBUF,
+            SockAPIClient.BUF_SIZE,
         )
 
         try:
             client_socket.connect((host, port))
-        except socket.error as e:
-
+        except OSError:
             return False
 
         client_socket.setblocking(False)
 
         # start sender / recv threads
         t1 = threading.Thread(
-            target=SockAPIClient.threaded_receive, args=(client_socket,)
+            target=SockAPIClient.threaded_receive,
+            args=(client_socket,),
         )
         t2 = threading.Thread(target=SockAPIClient.threaded_send, args=(client_socket,))
 
@@ -260,24 +285,21 @@ class SimEnv:
             SockAPIClient.lock.release()
         SimEnv._is_connected = False
 
-
-
     main_counter = 0
 
     @staticmethod
     def run_main() -> bool:
-        """run the main loop and exchange data with the SimEnv inside the loop while the connection is active. waits for one tick."""
-
+        """Run the main loop and exchange data with the SimEnv inside the loop while the connection is active. waits for one tick."""
         # SimEnv.await_tick()
 
         last_update = EntityBase.last_receive_at
         time.sleep(0.01)
-        #sim_update = float(EntityBase._in_dict["SimEnvManager.Current.SimTime"].array_data[0][0][0])
+        # sim_update = float(EntityBase._in_dict["SimEnvManager.Current.SimTime"].array_data[0][0][0])
         # wait for update
         start = 0.0
         while (
-            SimEnv.main_counter > 0 and
-            last_update == EntityBase.last_receive_at
+            SimEnv.main_counter > 0
+            and last_update == EntityBase.last_receive_at
             and start < 3
             and SimEnv._is_connected
         ):
@@ -285,17 +307,14 @@ class SimEnv:
             start += 0.002
 
         SimEnv.main_counter += 1
-            
 
         _dispatch_events()
-
-        
 
         return SimEnv._is_connected
 
     @staticmethod
     def disconnect():
-        """disconnect from the SimEnv."""
+        """Disconnect from the SimEnv."""
         time.sleep(0.6)
         EntityBase._log_debug_static("pyjop closed connection")
         time.sleep(0.6)
@@ -305,13 +324,11 @@ class SimEnv:
         sys.exit()
 
 
-
 _overhead_mem_bytes = 0
 
 
-
 def get_memory_usage(subtract_overhead=True) -> float:
-    """get the currently used memory of your program in megabytes."""
+    """Get the currently used memory of your program in megabytes."""
     collect()
     process = Process(getpid())
     mb = process.memory_info().rss / (1e6)
@@ -322,8 +339,4 @@ def get_memory_usage(subtract_overhead=True) -> float:
     return mb
 
 
-
-
 _overhead_mem_bytes = math.ceil(get_memory_usage(False))
-
-

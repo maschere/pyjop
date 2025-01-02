@@ -5,27 +5,39 @@ __pdoc__["Network.SockAPIClient"] = False
 __a = set(dir())
 
 import builtins
-from pyjop.EntityBase import _is_custom_level_runner, _internal_python_process
+
+from pyjop.EntityBase import _internal_python_process, _is_custom_level_runner
+
 builtins.print("Initializing JOY OF PROGRAMMING Python process.", end="")
 del builtins
+import builtins
+
 from pyjop.Enums import *
-import builtins
+
 builtins.print(".", end="")
 del builtins
+import builtins
+
 from pyjop.EntityBase import *
-import builtins
+
 builtins.print(".", end="")
 del builtins
+import builtins
+
 from pyjop.EntityClasses import *
-import builtins
+
 builtins.print(".", end="")
 del builtins
+import builtins
+
 from pyjop.Network import *
-import builtins
+
 builtins.print(".", end="")
 del builtins
-from pyjop.Vector import Vector3
 import builtins
+
+from pyjop.Vector import Vector3
+
 builtins.print(".", end="")
 del builtins
 
@@ -39,13 +51,15 @@ for __x in __b:
 del __b
 
 # audit hook
-import inspect
-from pkgutil import iter_modules
-from pathlib import Path
-from importlib import import_module
 import importlib.metadata
-PYJOP_VERSION = importlib.metadata.version('pyjop')
+import inspect
+from importlib import import_module
+from pathlib import Path
+from pkgutil import iter_modules
+
+PYJOP_VERSION = importlib.metadata.version("pyjop")
 import builtins
+
 builtins.print(".", end="")
 del builtins
 
@@ -64,6 +78,7 @@ for _, __module_name_it, _ in iter_modules([__package_dir]):
             globals()[__attribute_name_it] = __attribute_it
 
 import builtins
+
 builtins.print(".", end="")
 del builtins
 # clean up
@@ -79,41 +94,75 @@ del (
     __attribute_name_it,
 )
 import builtins
+
 builtins.print(" DONE")
 del builtins
 
-from sys import addaudithook
 # import importlib.util
 from os import path
+from sys import addaudithook
+
+
 # import re
-#_mypath = str(path.normpath(__file__)).replace("\\","/").split("/000_MyContent/External/")[0]
-def _sandbox_editor(event,arg):
-    if type(event) != str: raise
-    if event=='open':
-        if len(arg)>1 and arg[1] and arg[1]!='r' and arg[1]!='rb' and type(arg[0]) is not int:
+# _mypath = str(path.normpath(__file__)).replace("\\","/").split("/000_MyContent/External/")[0]
+def _sandbox_editor(event, arg):
+    if type(event) != str:
+        raise
+    if event == "open":
+        if (
+            len(arg) > 1
+            and arg[1]
+            and arg[1] != "r"
+            and arg[1] != "rb"
+            and type(arg[0]) is not int
+        ):
             if not (type(arg[0]) is str and arg[0].endswith(".matplotlib-lock")):
-                #print(event, arg)
+                # print(event, arg)
                 raise PermissionError("Writing files forbidden.")
 
     if event == "socket.bind":
         if arg[1][0] != "127.0.0.1":
-            #print(event, arg)
+            # print(event, arg)
             raise PermissionError("Socket binding not allowed")
-    if event == "socket.connect" and not (len(arg)>1 and len(arg[1])>1 and arg[1][0] == "127.0.0.1"):
-        #print(event, arg)
+    if event == "socket.connect" and not (
+        len(arg) > 1 and len(arg[1]) > 1 and arg[1][0] == "127.0.0.1"
+    ):
+        # print(event, arg)
         raise PermissionError("Network connections not allowed")
-    if event.split('.')[0] in ['subprocess', 'shutil', 'ftplib']: 
-        #print(event, arg)
-        raise PermissionError('potentially dangerous, subprocess, shutil, forbidden'  + str(event))
-    if event.split('.')[0] == "winreg":
-        cmd = event.split('.')[1]
-        if cmd not in ["ConnectRegistry", "LoadKey", "OpenKey", "OpenKey/result", "QueryValue", "QueryInfoKey", "EnumKey", "EnumValue"]:
-            #print(event, arg)
-            raise PermissionError('potentially dangerous, winreg forbidden'  + str(event))
-    if event.split('.')[0] == "os" and event.split('.')[1] not in ["listdir", "scandir", "add_dll_directory", "putenv", "walk", "unsetenv"]:
-        #print(event, arg)
+    if event.split(".")[0] in ["subprocess", "shutil", "ftplib"]:
+        # print(event, arg)
+        raise PermissionError(
+            "potentially dangerous, subprocess, shutil, forbidden" + str(event),
+        )
+    if event.split(".")[0] == "winreg":
+        cmd = event.split(".")[1]
+        if cmd not in [
+            "ConnectRegistry",
+            "LoadKey",
+            "OpenKey",
+            "OpenKey/result",
+            "QueryValue",
+            "QueryInfoKey",
+            "EnumKey",
+            "EnumValue",
+        ]:
+            # print(event, arg)
+            raise PermissionError(
+                "potentially dangerous, winreg forbidden" + str(event),
+            )
+    if event.split(".")[0] == "os" and event.split(".")[1] not in [
+        "listdir",
+        "scandir",
+        "add_dll_directory",
+        "putenv",
+        "walk",
+        "unsetenv",
+    ]:
+        # print(event, arg)
         if not (event == "os.remove" and arg[0].endswith(".matplotlib-lock")):
-            raise PermissionError('potentially dangerous, os access forbidden: ' + str(event))
+            raise PermissionError(
+                "potentially dangerous, os access forbidden: " + str(event),
+            )
     # if event == "compile":
     #     raise PermissionError('potentially dangerous, compile and exec forbidden')
     # if event == "exec":
@@ -124,9 +173,11 @@ def _sandbox_editor(event,arg):
     # #     # spec = importlib.util.find_spec(arg[0])
     # #     # p = str(path.normpath(spec.origin)).replace("\\","/")
     # #     # #if p.startswith(__file__)
-        
+
     # #     # if p.startswith(_mypath + "/000_MyContent/External/python-3.10.4-embed-amd64/") == False:
     #     raise PermissionError('Custom imports forbidden.')
-if _is_custom_level_runner() or _internal_python_process():        
+
+
+if _is_custom_level_runner() or _internal_python_process():
     addaudithook(_sandbox_editor)
 del addaudithook
