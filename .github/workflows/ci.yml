@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - rc
+
+env:
+  FORCE_COLOR: 1
+  PRE_COMMIT_COLOR: "always"  # https://github.com/pre-commit/pre-commit/issues/2918
+
+jobs:
+  Nox:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: snok/install-poetry@v1
+      - uses: daisylb/setup-nox@v2.1.0
+      - run: nox
