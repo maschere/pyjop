@@ -3,7 +3,7 @@ from enum import Enum, EnumMeta, auto, unique
 
 
 class MetaEnum(EnumMeta):
-    def __contains__(cls, item):
+    def __contains__(cls, item) -> bool:
         try:
             cls(item)
         except ValueError:
@@ -31,7 +31,7 @@ class StrMetaEnum(MetaEnum):
         return name
 
     def __getattr__(cls, name: str):
-        """Return the enum member matching `name`
+        """Return the enum member matching `name`.
 
         We use __getattr__ instead of descriptors or inserting into the enum
         class' __dict__ in order to support `name` and `value` being both
@@ -56,7 +56,7 @@ class StrEnum(str, Enum, metaclass=StrMetaEnum):
     def __str__(self) -> str:
         return self.name
 
-    def _generate_next_value_(name, start, count, last_values):
+    def _generate_next_value_(name, start, count, last_values):  # noqa: N805
         return name
 
 
@@ -66,7 +66,7 @@ class ColorEnum(tuple, Enum, metaclass=MetaEnum):
 
 @unique
 class ParameterTypes(IntEnum):
-    """data type enum"""
+    """data type enum."""
 
     _None = 0
     Bool = 1
@@ -83,7 +83,7 @@ class ParameterTypes(IntEnum):
 
 @unique
 class MusicNotes(StrEnum):
-    """names musical notes"""
+    """names musical notes."""
 
     C1 = auto()
     Db1 = auto()
@@ -207,7 +207,7 @@ class MusicNotes(StrEnum):
 
 
 class Colors(ColorEnum):
-    """Named css colors as RGB tuples"""
+    """Named css colors as RGB tuples."""
 
     Aliceblue = (0.9411764705882353, 0.9725490196078431, 1.0)
     Antiquewhite = (0.9803921568627451, 0.9215686274509803, 0.8431372549019608)
@@ -366,7 +366,7 @@ class Colors(ColorEnum):
 
 @unique
 class ComparisonResult(IntEnum):
-    """ComparisonResult enum for pair-wise comparisons between A and B resulting in A<B -> LessThan, A==B -> Equal, A>B -> GreaterThan"""
+    """ComparisonResult enum for pair-wise comparisons between A and B resulting in A<B -> LessThan, A==B -> Equal, A>B -> GreaterThan."""
 
     LessThan = -1
     Equal = 0
@@ -430,7 +430,7 @@ class MachineState(StrEnum):
 
 
 class ArcadeButtons(StrEnum):
-    """All possible buttons on an arcade machine"""
+    """All possible buttons on an arcade machine."""
 
     Up = auto()
     Down = auto()
@@ -448,7 +448,7 @@ class ArcadeButtons(StrEnum):
 
 
 class ArcadeAxis(StrEnum):
-    """All possible axes available on the arcade machine"""
+    """All possible axes available on the arcade machine."""
 
     UpDown = auto()
     RightLeft = auto()
@@ -457,14 +457,14 @@ class ArcadeAxis(StrEnum):
 
 
 class ArcadeGames(StrEnum):
-    """All available games on the arcade machine"""
+    """All available games on the arcade machine."""
 
     Snak = auto()
     BlokOut = auto()
 
 
 class TrafficLightStates(StrEnum):
-    """Possible states of a traffic light"""
+    """Possible states of a traffic light."""
 
     Off = auto()
     Red = auto()
@@ -484,7 +484,7 @@ class CameraType(IntEnum):
 
 @unique
 class GoalState(StrEnum):
-    """GoalStates for level editor"""
+    """GoalStates for level editor."""
 
     Open = auto()
     Success = auto()
@@ -495,7 +495,7 @@ class GoalState(StrEnum):
 
 @unique
 class SpawnableMaps(StrEnum):
-    """Spawnable maps for the level editor"""
+    """Spawnable maps for the level editor."""
 
     MinimalisticIndoor = auto()
     ParkingLot = auto()
@@ -516,7 +516,7 @@ class SpawnableMaps(StrEnum):
 
 @unique
 class SpawnableEntities(StrEnum):
-    """entities which can be spawned in the level editor"""
+    """entities which can be spawned in the level editor."""
 
     # AirstrikeControl=auto()
     ArcadeMachine = auto()
@@ -587,7 +587,7 @@ class SpawnableEntities(StrEnum):
 
 @unique
 class SpawnableMeshes(StrEnum):
-    """meshes which can be spawned in the level editor"""
+    """meshes which can be spawned in the level editor."""
 
     Cube = auto()
     Sphere = auto()
@@ -670,7 +670,7 @@ class VerbosityLevels(IntEnum):
 
 @unique
 class SpawnableMaterials(StrEnum):
-    """Materials which can be spawned in the level editor"""
+    """Materials which can be spawned in the level editor."""
 
     Default = auto()
     SimpleColor = auto()
@@ -683,7 +683,7 @@ class SpawnableMaterials(StrEnum):
 
 @unique
 class SpawnableSounds(StrEnum):
-    """Sounds which can be played from the level editor"""
+    """Sounds which can be played from the level editor."""
 
     Explosion = auto()
     ButtonClick = auto()
@@ -709,7 +709,7 @@ class SpawnableSounds(StrEnum):
 
 @unique
 class BuiltinMusic(StrEnum):
-    """Music which can be played from the SmartSpeaker"""
+    """Music which can be played from the SmartSpeaker."""
 
     TropicalPlaylist = auto()
     DemoPlaylist = auto()
@@ -726,7 +726,7 @@ class MusicInstruments(StrEnum):
 
 @unique
 class AmmunitionTypes(StrEnum):
-    """Available ammunition types for artillery, grenades, high caliber rifles, etc"""
+    """Available ammunition types for artillery, grenades, high caliber rifles, etc."""
 
     Explosive = auto()
     # fire, smoke, emp, splinter
@@ -753,7 +753,7 @@ class CosmeticItems(StrEnum):
 
 @unique
 class SpawnableVFX(StrEnum):
-    """VFX which can be shown from the level editor"""
+    """VFX which can be shown from the level editor."""
 
     Explosion = auto()
     Fireworks1 = auto()
@@ -774,7 +774,7 @@ class SpawnableImages(StrEnum):
 
 @unique
 class SpawnableVideos(StrEnum):
-    """Videos which can be shown from the level editor"""
+    """Videos which can be shown from the level editor."""
 
     ManimPrintHello = auto()
     ManimForLoops = auto()
@@ -785,7 +785,7 @@ class SpawnableVideos(StrEnum):
 # modding: add to CodeMirror.class_static_hints and CodeMirror.all_enum_tooltips
 @unique
 class Colormaps(StrEnum):
-    """All colormaps available in matplotlib"""
+    """All colormaps available in matplotlib."""
 
     viridis = auto()
     plasma = auto()

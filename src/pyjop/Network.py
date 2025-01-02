@@ -30,7 +30,7 @@ class SockAPIClient:
     lock = threading.Lock()
 
     @staticmethod
-    def threaded_receive(connection: socket.socket):
+    def threaded_receive(connection: socket.socket) -> None:
         # connection.send(str.encode('Welcome to the Servern'))
         # time.sleep(0.20095217)
         datall = bytearray()
@@ -46,7 +46,7 @@ class SockAPIClient:
                         break
                     lendatall = len(datall)
             except OSError as e:
-                if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
+                if e.errno not in (errno.EAGAIN, errno.EWOULDBLOCK):
                     SockAPIClient.lock.release()
                     break
             SockAPIClient.lock.release()
@@ -77,7 +77,7 @@ class SockAPIClient:
                     datall = bytearray()
 
             if (
-                _debugger_is_active() == False
+                _debugger_is_active() is False
                 and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds()
                 > SockAPIClient.TIMEOUT
             ):
@@ -91,7 +91,7 @@ class SockAPIClient:
         connection.close()
 
     @staticmethod
-    def threaded_send(connection: socket.socket):
+    def threaded_send(connection: socket.socket) -> None:
         # time.sleep(0.2112456)
         # connection.send(str.encode('Welcome to the Servern'))
         data = b""
@@ -101,7 +101,7 @@ class SockAPIClient:
             if len(EntityBase._out_dict) > 0:
                 EntityBase.sendlock.acquire()
                 out_dict = copy.deepcopy(EntityBase._out_dict)
-                EntityBase._out_dict = dict()  # clear
+                EntityBase._out_dict = {}  # clear
                 EntityBase.sendlock.release()
                 # out_items = out_dict.items()
 
@@ -113,7 +113,7 @@ class SockAPIClient:
                 ]
                 l.sort(key=lambda v: v.time_id)
                 flat_list = [num.pack_msg() for num in l]
-                if _is_custom_level_runner() == False and iloop % 10 == 0:
+                if _is_custom_level_runner() is False and iloop % 10 == 0:
                     k = "SimEnvManager.Current.MemUsg"
                     nparr = NPArray(
                         k,
@@ -132,7 +132,7 @@ class SockAPIClient:
                         # print("sent " + str(len_sent))
                         data = data[len_sent:]
                 except OSError as e:
-                    if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
+                    if e.errno not in (errno.EAGAIN, errno.EWOULDBLOCK):
                         SockAPIClient.lock.release()
                         break
                 SockAPIClient.lock.release()
@@ -140,7 +140,7 @@ class SockAPIClient:
                     EntityBase.last_send_at = datetime.utcnow()
                     iloop += 1
             if (
-                _debugger_is_active() == False
+                _debugger_is_active() is False
                 and (datetime.utcnow() - EntityBase.last_receive_at).total_seconds()
                 > SockAPIClient.TIMEOUT
             ):
@@ -151,7 +151,7 @@ class SockAPIClient:
         connection.close()
 
     @staticmethod
-    def _force_send_manual(connection: socket.socket, *args: NPArray):
+    def _force_send_manual(connection: socket.socket, *args: NPArray) -> None:
         flat_list = [num.pack_msg() for num in args]
         data = b"".join(flat_list)
 
@@ -161,11 +161,11 @@ class SockAPIClient:
                 len_sent = connection.send(data)
                 data = data[len_sent:]
         except OSError as e:
-            if not (e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK):
+            if e.errno not in (errno.EAGAIN, errno.EWOULDBLOCK):
                 return
 
     @staticmethod
-    def _debug_pause():
+    def _debug_pause() -> None:
         SockAPIClient._force_send_manual(
             SimEnv._client_socket,
             NPArray(
@@ -175,7 +175,7 @@ class SockAPIClient:
         )
 
         out_dict = copy.deepcopy(EntityBase._out_dict)
-        EntityBase._out_dict = dict()
+        EntityBase._out_dict = {}
         l = [
             num
             for sublist in [v for k, v in out_dict.items() if len(v) > 0]
@@ -205,9 +205,9 @@ class SimEnv:
         """
         if SimEnv._is_connected:
             return True
-        EntityBase._out_dict = dict()
-        EntityBase._in_dict = dict()
-        EntityBase._entity_dict = dict()
+        EntityBase._out_dict = {}
+        EntityBase._in_dict = {}
+        EntityBase._entity_dict = {}
         custom_classes = _find_all_entity_classes_rec()
         if len(custom_classes) > 0:  # convert to dict
             EntityBase._custom_classes = {
@@ -275,7 +275,7 @@ class SimEnv:
         return True
 
     @staticmethod
-    def __observe_threads__(cSock, t1, t2):
+    def __observe_threads__(cSock, t1, t2) -> None:
         t1.join()
         t2.join()
         # done
@@ -313,7 +313,7 @@ class SimEnv:
         return SimEnv._is_connected
 
     @staticmethod
-    def disconnect():
+    def disconnect() -> None:
         """Disconnect from the SimEnv."""
         time.sleep(0.6)
         EntityBase._log_debug_static("pyjop closed connection")

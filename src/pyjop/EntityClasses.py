@@ -2,7 +2,7 @@ import json
 import time
 from collections.abc import Callable, Sequence
 from io import BytesIO
-from typing import Any
+from typing import Any, NoReturn
 
 import numpy as np
 from matplotlib import colormaps
@@ -27,7 +27,7 @@ from pyjop.Vector import Rotator3, Vector3
 class ConveyorBelt(EntityBase["ConveyorBelt"]):
     """Conveyor Belt with variable belt speed for transporting objects. Can move objects forwards or backwards. Also has a sensor to check if it is transporting any objects."""
 
-    def set_target_speed(self, speed: float):
+    def set_target_speed(self, speed: float) -> None:
         """Set the conveyor's target belt speed to the specified value.
 
         Args:
@@ -47,7 +47,7 @@ class ConveyorBelt(EntityBase["ConveyorBelt"]):
         self._set_float("setTargetSpeed", float(speed))
 
     def get_is_transporting(self) -> bool:
-        """Returns True if the belt is currently transporting something, else False
+        """Returns True if the belt is currently transporting something, else False.
 
         Example:
             >>>
@@ -74,7 +74,7 @@ class ConveyorBelt(EntityBase["ConveyorBelt"]):
         """
         return self._get_float("CurrentSpeed")
 
-    def editor_set_max_speed(self, max_speed: float):
+    def editor_set_max_speed(self, max_speed: float) -> None:
         """Sets the maximum speed of the conveyor belt that the player can set it to. Defaults to 5. Maximum available speed is 25."""
         self._set_float("setMaxSpeed", max_speed)
 
@@ -115,8 +115,8 @@ class TurnableConveyorBelt(EntityBaseStub["TurnableConveyorBelt"], ConveyorBelt)
     # def getCurrentRotation(self) -> float:
     #     """Get the current rotation in [-180°,180°]"""
     #     return self.__get_float__("BeltRotationCurrentFloat")
-    def set_target_rotation(self, rot: float):
-        """Set the rotation angle of the conveyor belt from -180° to 180°
+    def set_target_rotation(self, rot: float) -> None:
+        """Set the rotation angle of the conveyor belt from -180° to 180°.
 
         Args:
             rot (float): Rotation angle in the range [-180,180]
@@ -133,27 +133,27 @@ class TurnableConveyorBelt(EntityBaseStub["TurnableConveyorBelt"], ConveyorBelt)
 class MovablePlatform(EntityBase["MovablePlatform"]):
     """Slow moving platform that can position and rotate itself within its boundaries. All attached objects on top of it will move along."""
 
-    def editor_set_location_limits(self, box_limits: Vector3, *args: float):
+    def editor_set_location_limits(self, box_limits: Vector3, *args: float) -> None:
         """[Level Editor only] Set the depth, width and height limits (in meters) along the three axes within wich the platform can be moved. The z-dimension (height) is from 0 to the specified value, the other axes from -value to +value."""
         self._set_vector3d("setLocationLimits", box_limits, add_args=args)
 
-    def editor_set_rotation_limits(self, rot_limits: Rotator3, *args: float):
+    def editor_set_rotation_limits(self, rot_limits: Rotator3, *args: float) -> None:
         """[Level Editor only] Set the half-rotation limits (roll, pitch, yaw) for the platform in degrees, meaning rotation for each component will be possible within -value to +value."""
         self._set_vector3d("setRotationLimits", rot_limits, add_args=args)
 
-    def editor_set_block_collisions(self, is_enabled: bool):
+    def editor_set_block_collisions(self, is_enabled: bool) -> None:
         """[Level Editor only] Enable or disable blocking collisions on movement. Default is enabled. Disabled allows clipping through walls."""
         self._set_bool("setBlockCollisions", is_enabled)
 
-    def editor_set_movement_speed(self, new_speed: float):
+    def editor_set_movement_speed(self, new_speed: float) -> None:
         """[Level Editor only] Change the movement speed of the platform in [0,100]."""
         self._set_float("setMovementSpeed", new_speed)
 
-    def editor_set_rotation_speed(self, new_speed: float):
+    def editor_set_rotation_speed(self, new_speed: float) -> None:
         """[Level Editor only] Change the rotation speed of the platform in [0,50]."""
         self._set_float("setRotationSpeed", new_speed)
 
-    def attach_entities(self):
+    def attach_entities(self) -> None:
         """Attach all entities currently on top of the platform.
 
         Example:
@@ -162,8 +162,8 @@ class MovablePlatform(EntityBase["MovablePlatform"]):
         """
         self._set_void("AttachEntities")
 
-    def release_entities(self):
-        """Release all entities currently on top of the platform
+    def release_entities(self) -> None:
+        """Release all entities currently on top of the platform.
 
         Example:
             >>>
@@ -171,7 +171,7 @@ class MovablePlatform(EntityBase["MovablePlatform"]):
         """
         self._set_void("ReleaseEntities")
 
-    def set_target_location(self, loc: Vector3, *args: float):
+    def set_target_location(self, loc: Vector3, *args: float) -> None:
         """Set the relative target location of the platform in meters. Will be clamped to platform movement limits.
 
         Args:
@@ -184,7 +184,7 @@ class MovablePlatform(EntityBase["MovablePlatform"]):
         """
         self._set_vector3d("setTargetLocation", loc, add_args=args)
 
-    def set_target_rotation(self, new_rotation: Rotator3, *args: float):
+    def set_target_rotation(self, new_rotation: Rotator3, *args: float) -> None:
         """Set the relative target rotation as roll, pitch, yaw of the platform in degrees. Will be clamped to platform rotation limits.
 
         Args:
@@ -238,7 +238,7 @@ class RailConveyorBelt(EntityBaseStub["RailConveyorBelt"], ConveyorBelt):
     """Conveyor Belt with variable belt speed for transporting objects that can be moved along a railway-track."""
 
     def get_current_position(self) -> float:
-        """Get the current position on the railway-track in meters from 0 to length of track
+        """Get the current position on the railway-track in meters from 0 to length of track.
 
         Example:
             railconv = RailConveyorBelt.first()
@@ -246,7 +246,7 @@ class RailConveyorBelt(EntityBaseStub["RailConveyorBelt"], ConveyorBelt):
         """
         return self._get_float("CurrentPosition")
 
-    def set_target_position(self, pos: float):
+    def set_target_position(self, pos: float) -> None:
         """Set the target position on the railway-track in meters from 0 to length of track.
 
         Example:
@@ -332,7 +332,7 @@ class ServiceDrone(EntityBase["ServiceDrone"]):
     #     """
     #     self.__set_float__("setLightIntensity", float(np.clip(intensity,0,50000)))
 
-    def set_thruster_force_right(self, force: float):
+    def set_thruster_force_right(self, force: float) -> None:
         """Set the continuous force of the right thruster to the specified value in [-200,200] Newton (kg*m/s^2) but mass is ignored. Will be applied proportionally every frame.
 
         Example:
@@ -345,7 +345,7 @@ class ServiceDrone(EntityBase["ServiceDrone"]):
         force = float(np.clip(force, -200, 200))
         self._set_float("setThrusterForceRight", force)
 
-    def set_thruster_force_left(self, force: float):
+    def set_thruster_force_left(self, force: float) -> None:
         """Set the continuous force of the left thruster to the specified value in [-200,200] Newton (kg*m/s^2) but mass is ignored. Will be applied proportionally every frame.
 
         Example:
@@ -358,7 +358,7 @@ class ServiceDrone(EntityBase["ServiceDrone"]):
         force = float(np.clip(force, -200, 200))
         self._set_float("setThrusterForceLeft", force)
 
-    def apply_thruster_impulse_right(self, impulse: float):
+    def apply_thruster_impulse_right(self, impulse: float) -> None:
         """Apply a one-time impulse with the right thruster in [-500,500] Newton-seconds (kg*m/s) but mass is ignored. The total force applied is equal to calling set_thruster_force over a period of 1 second.
 
         Example:
@@ -371,7 +371,7 @@ class ServiceDrone(EntityBase["ServiceDrone"]):
         impulse = float(np.clip(impulse, -500, 500))
         self._set_float("ApplyThrusterImpulseRight", impulse)
 
-    def apply_thruster_impulse_left(self, impulse: float):
+    def apply_thruster_impulse_left(self, impulse: float) -> None:
         """Apply a one-time impulse force with the left thruster in [-500,500] Newton-seconds (kg*m/s) but mass is ignored. The total force applied is equal to calling set_thruster_force over a period of 1 second.
 
         Example:
@@ -384,7 +384,7 @@ class ServiceDrone(EntityBase["ServiceDrone"]):
         impulse = float(np.clip(impulse, -500, 500))
         self._set_float("ApplyThrusterImpulseLeft", impulse)
 
-    def set_fov(self, fov: float):
+    def set_fov(self, fov: float) -> None:
         """Set the field-of-view of the camera to the specified angle in [20,160] degrees. Note: Depending on its configuration, the Drone's camera might be disabled.
 
         Example:
@@ -403,10 +403,10 @@ class LaserTracer(EntityBase["LaserTracer"]):
     """Reflective laser tracer that will calculate the relative impact positions of up to 10 laser bounces."""
 
     def get_impacts(self) -> np.ndarray:
-        """Return up to 10 laser bounces as relative xyz coordinates in a n x 3 matrix"""
+        """Return up to 10 laser bounces as relative xyz coordinates in a n x 3 matrix."""
         return self._get_array_raw("Impacts", [0, 0, 0])
 
-    def set_enabled(self, is_enabled: bool):
+    def set_enabled(self, is_enabled: bool) -> None:
         """Turn the LaserTracer on or off immediately.
 
         Args:
@@ -436,7 +436,7 @@ class DeliveryContainer(EntityBase["DeliveryContainer"]):
         """
         return self._get_uint8("NumInside")
 
-    def deliver(self):
+    def deliver(self) -> None:
         """Delivers all objects currently inside the delivery box. Door must be closed for this to work.
 
         Example:
@@ -447,7 +447,7 @@ class DeliveryContainer(EntityBase["DeliveryContainer"]):
         """
         self._set_void("Deliver")
 
-    def open_door(self):
+    def open_door(self) -> None:
         """Opens the door.
 
         Example:
@@ -457,7 +457,7 @@ class DeliveryContainer(EntityBase["DeliveryContainer"]):
         """
         self._set_void("OpenDoor")
 
-    def close_door(self):
+    def close_door(self) -> None:
         """Closes the door.
 
         Example:
@@ -482,14 +482,14 @@ class DeliveryContainer(EntityBase["DeliveryContainer"]):
     def on_delivered(
         self,
         handler: Callable[["DeliveryContainer", float, BaseEventData], None],
-    ):
+    ) -> None:
         """Event called when one or more objects inside the delivery are successfully delivered.
 
         Args:
             handler (Callable[[DeliveryContainer,float, BaseEventData],None]): Event handler function that takes sender, simtime, BaseEventData as arguments.
         """
 
-        def wrapper(sender: DeliveryContainer, gametime: float, nparr: NPArray):
+        def wrapper(sender: DeliveryContainer, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             dat = None
             try:
@@ -502,7 +502,7 @@ class DeliveryContainer(EntityBase["DeliveryContainer"]):
 
         self._add_event_listener("_eventOnDelivered", wrapper)
 
-    def editor_set_can_deliver_non_physics(self, is_enabled: bool):
+    def editor_set_can_deliver_non_physics(self, is_enabled: bool) -> None:
         """[Level Editor Only] Enable or disable the possibility to deliver non physically simulated objects. Careful not to overlap anything that you do not want delivered / destroyed."""
         self._set_bool("setCanDeliverNonPhysics", is_enabled)
 
@@ -510,7 +510,7 @@ class DeliveryContainer(EntityBase["DeliveryContainer"]):
 class ObjectSpawner(EntityBase["ObjectSpawner"]):
     """Spawns objects into the SimEnv. Behavior depends on SimEnv setup."""
 
-    def spawn(self):
+    def spawn(self) -> None:
         """Try to spawn the next object. Only works if this spawner is not automated and not busy."""
         self._set_void("Spawn")
 
@@ -518,11 +518,11 @@ class ObjectSpawner(EntityBase["ObjectSpawner"]):
 class SmartDoor(EntityBase["SmartDoor"]):
     """Remote controllable door that can be opened and closed programmatically."""
 
-    def open(self):
+    def open(self) -> None:
         """Open the door."""
         self._set_void("Open")
 
-    def close(self):
+    def close(self) -> None:
         """Close the door."""
         self._set_void("Close")
 
@@ -534,11 +534,11 @@ class SmartDoor(EntityBase["SmartDoor"]):
 class SmartBlinds(EntityBase["SmartBlinds"]):
     """Remote controllable blinds / shutters that can be opened and closed programmatically."""
 
-    def open(self):
+    def open(self) -> None:
         """Open the blinds."""
         self._set_void("Open")
 
-    def close(self):
+    def close(self) -> None:
         """Close the blinds."""
         self._set_void("Close")
 
@@ -550,11 +550,11 @@ class SmartBlinds(EntityBase["SmartBlinds"]):
 class RailwayBarrier(EntityBase["RailwayBarrier"]):
     """Remote controllable barrier that can be opened and closed programmatically."""
 
-    def open(self):
+    def open(self) -> None:
         """Open the barrier."""
         self._set_void("Open")
 
-    def close(self):
+    def close(self) -> None:
         """Close the barrier."""
         self._set_void("Close")
 
@@ -574,8 +574,7 @@ class RangeFinder(EntityBase["RangeFinder"]):
             scanner = RangeFinder.first()
             print(scanner.get_distance())
         """
-        distance = self._get_float("Distance")
-        return distance
+        return self._get_float("Distance")
 
     def get_rfid_tag(self) -> str:
         """Returns the RFID tag of the entity currently hit by this range finder. Returns empty string if nothing is hit or target has no RFID tag.
@@ -636,7 +635,7 @@ class RangeFinder(EntityBase["RangeFinder"]):
         """
         return self._get_float("Mass")
 
-    def set_rfid_tag(self, rfid_tag: str):
+    def set_rfid_tag(self, rfid_tag: str) -> None:
         """Write an RFID tag to the entity currently hit by this range finder. Replaces any other rfid tag.
 
         Args:
@@ -661,27 +660,27 @@ class RangeFinder(EntityBase["RangeFinder"]):
         """
         return self._get_json("FeatureData")
 
-    def editor_set_can_read_rfid_tags(self, enabled: bool):
+    def editor_set_can_read_rfid_tags(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable the rfid reader on this device."""
         self._set_bool("setCanReadRfidTags", enabled)
 
-    def editor_set_can_write_rfid_tags(self, enabled: bool):
+    def editor_set_can_write_rfid_tags(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable the rfid writer on this device."""
         self._set_bool("setCanWriteRfidTags", enabled)
 
-    def editor_set_can_read_entities(self, enabled: bool):
+    def editor_set_can_read_entities(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable the entity reader on this device that can read type and name of most entities."""
         self._set_bool("setCanReadEntities", enabled)
 
-    def editor_set_can_read_physics(self, enabled: bool):
+    def editor_set_can_read_physics(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable the physics reader on this device that can read speed, mass and size of most entities."""
         self._set_bool("setCanReadPhysics", enabled)
 
-    def editor_set_can_read_feature_data(self, enabled: bool):
+    def editor_set_can_read_feature_data(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable feature data reader on this device."""
         self._set_bool("setCanReadFeatureData", enabled)
 
-    def editor_set_max_range(self, max_range: float):
+    def editor_set_max_range(self, max_range: float) -> None:
         """[Level Editor only] Set the max distance for the scanning range."""
         self._set_float("setMaxRange", max_range)
 
@@ -689,12 +688,12 @@ class RangeFinder(EntityBase["RangeFinder"]):
 class SmartPictureFrame(EntityBase["SmartPictureFrame"]):
     """Picture display that can dynamically change its content."""
 
-    def set_image_by_name(self, img_name: str):
+    def set_image_by_name(self, img_name: str) -> None:
         """Sets the image to the specified image name."""
         self._set_string("SetImgByName", img_name)
 
-    def set_image_by_bytes(self, img_bytes: np.ndarray):
-        """Sets the image to the specified image array"""
+    def set_image_by_bytes(self, img_bytes: np.ndarray) -> None:
+        """Sets the image to the specified image array."""
         k = self._build_name("SetImgByBytes")
         nparr = NPArray(k, img_bytes)
         self._set_out_data(k, nparr)
@@ -702,25 +701,25 @@ class SmartPictureFrame(EntityBase["SmartPictureFrame"]):
 
 
 class PaintableCanvas(EntityBase["PaintableCanvas"]):
-    """A 2D canvas that can be painted on"""
+    """A 2D canvas that can be painted on."""
 
-    def set_brush_color(self, color: Colors = Colors.Black):
-        """Set the desired brush color"""
+    def set_brush_color(self, color: Colors = Colors.Black) -> None:
+        """Set the desired brush color."""
         self._set_vector3d("setBrushColor", _parse_color(color))
 
-    def set_brush_size(self, radius: float):
+    def set_brush_size(self, radius: float) -> None:
         """Set the size of the brush. Set to 0 for invisible brush strokes."""
         self._set_float("setBrushSize", radius)
 
-    def set_brush_location(self, target_location: Vector3, *args: float):
+    def set_brush_location(self, target_location: Vector3, *args: float) -> None:
         """Set the desired target position of the brush. It will move to the new position automatically and paint a brush stroke along the way.  Set brush size to 0 to move without painting. Z coordinate is ignored."""
         self._set_vector3d("setBrushLocation", target_location, add_args=args)
 
 
 class CarvingRobot(EntityBase["CarvingRobot"]):
-    """A rotating carving robot that can carve away material from a rotating cylinder"""
+    """A rotating carving robot that can carve away material from a rotating cylinder."""
 
-    def set_speed(self, target_speed: float):
+    def set_speed(self, target_speed: float) -> None:
         """Set the target rotating speed of the base."""
         self._set_float("SetSpeed", target_speed)
 
@@ -729,7 +728,7 @@ class CarvingRobot(EntityBase["CarvingRobot"]):
         vertical_positon: float,
         depth_position: float,
         chisel_size: float = 0.1,
-    ):
+    ) -> None:
         """Set the target chisel position (vertical along the cylinder and depth into the cylinder) and chisel size. All values are relative in [0,1]."""
         self._set_vector3d("SetChisel", [vertical_positon, depth_position, chisel_size])
         # should work with boolean intersect https://docs.unrealengine.com/5.0/en-US/geometry-script-reference-in-unreal-engine/
@@ -738,7 +737,7 @@ class CarvingRobot(EntityBase["CarvingRobot"]):
 class SimEnvManager(EntityBase["SimEnvManager"]):
     """Manage the current SimEnv with this class."""
 
-    def reset(self, stop_code=False, await_reset=True):
+    def reset(self, stop_code=False, await_reset=True) -> None:
         """Resets the current SimEnv to its initial state at time=0.
 
         Args:
@@ -759,7 +758,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
             if not await_reset:
                 return
             #  wait for next update loop
-            for i in range(200):
+            for _i in range(200):
                 time.sleep(0.01)
                 t2 = self.get_sim_time()
                 if t2 >= 0 and (t2 < 2 or t2 < t):
@@ -817,7 +816,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
         """
         return self._get_float("CompletionProgress")
 
-    def set_time_dilation(self, dilation: float):
+    def set_time_dilation(self, dilation: float) -> None:
         """slow-down or speed-up the simulation speed of the SimEnv. [0.05,5], values < 1 are slow-motion.
 
         Example:
@@ -845,7 +844,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
             val = 0.00001
         return val
 
-    def query_input(self, prompt: str):
+    def query_input(self, prompt: str) -> None:
         """Show a modal input dialog in the SimEnv and allow the user to enter some text value. Asynchronous, does not wait for the user to enter something. Recommended to use "input" command instead for synchronous querying.
 
         Args:
@@ -884,7 +883,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
             return js["res"]
         return ""
 
-    def quit_game(self, do_you_really_want_to_quit: bool):
+    def quit_game(self, do_you_really_want_to_quit: bool) -> None:
         """Immediately quit the game and exit to the desktop.
 
         Args:
@@ -895,10 +894,10 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
             # much sad :(
             SimEnvManager.first().quit_game(True)
         """
-        if do_you_really_want_to_quit == True:
+        if do_you_really_want_to_quit is True:
             self._set_void("QuitGame")
 
-    def set_verbosity_level(self, verbosity: VerbosityLevels):
+    def set_verbosity_level(self, verbosity: VerbosityLevels) -> None:
         """Set the verbosity level of the pyjop interface. Higher values mean more verbose information.
 
         Args:
@@ -914,7 +913,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
         thickness: float = 2.0,
         lifetime: float = 1.0,
         foreground: bool = False,
-    ):
+    ) -> None:
         """Draw a single line for debugging purposes into the world.
 
         Args:
@@ -948,7 +947,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
         foreground: bool = False,
         max_bounces: int = -1,
         elasticity: float = 0.5,
-    ):
+    ) -> None:
         """Draw a throw prediction arc for debugging purposes into the world. Note that bounce prediction is an estimate.
 
         Args:
@@ -978,7 +977,7 @@ class SimEnvManager(EntityBase["SimEnvManager"]):
         )
 
 
-def sleep(seconds: float = 0, ignore_time_dilation=False):
+def sleep(seconds: float = 0, ignore_time_dilation=False) -> None:
     """Delay execution for a given number of seconds. Is automatically scaled with SimEnv time dilation, unless you specify ignore_time_dilation=True.
 
     Example:
@@ -1028,9 +1027,11 @@ def sleep(seconds: float = 0, ignore_time_dilation=False):
 
 
 import builtins
+import contextlib
+import sys
 
 
-def print_all_entities():
+def print_all_entities() -> None:
     """Prints a list of all programmable entities currently in the SimEnv.
 
     Example:
@@ -1067,6 +1068,7 @@ def print(
         msg = " ".join(map(str, args))
         EntityBase._log_debug_static(msg, col=_parse_color(col), log_level=log_level)
         return builtins.print(*args)
+    return None
 
 
 def input(prompt="") -> str:
@@ -1093,7 +1095,7 @@ def input(prompt="") -> str:
             return res["res"]
 
 
-def show_nicegui(title="My Nice GUI", width=800, height=600):
+def show_nicegui(title="My Nice GUI", width=800, height=600) -> None:
     """Show and load the current nicegui window. Blocking operation.
 
     Args:
@@ -1120,7 +1122,7 @@ def show_nicegui(title="My Nice GUI", width=800, height=600):
     from nicegui import ui
 
     # workaround to get joy event dispatcher into nicegui main loop
-    def upd(x):
+    def upd(x) -> str:
         _dispatch_events()
         return '<div style="display: none">a<div>'
 
@@ -1160,7 +1162,7 @@ class Piano(EntityBase["Piano"]):
         self._set_string("PlayNote", str(note))
 
     def play_note_in_octave(self, base_note: str, octave: int) -> None:
-        """Play the specified note (from C to B, with s for sharps and b for flats) on the specified octave (1 to 7)
+        """Play the specified note (from C to B, with s for sharps and b for flats) on the specified octave (1 to 7).
 
         Args:
             base_note (str): Note to play as string. Valid values [C,D,E,F,G,A,B], with suffix s or # for sharps and b for flats
@@ -1173,12 +1175,12 @@ class Piano(EntityBase["Piano"]):
         """
         self._set_string("PlayNote", base_note + str(octave))
 
-    def play_chord(self, chord_notes: Sequence[MusicNotes]):
+    def play_chord(self, chord_notes: Sequence[MusicNotes]) -> None:
         for n in chord_notes:
             self._set_string("PlayNote", str(n), True)
 
     # new method to choose instrument
-    def set_instrument(self, new_instrument: MusicInstruments):
+    def set_instrument(self, new_instrument: MusicInstruments) -> None:
         """Set the instrument used by this electric piano / keyboard.
 
         Args:
@@ -1188,10 +1190,10 @@ class Piano(EntityBase["Piano"]):
 
 
 class SmartLight(EntityBase["SmartLight"]):
-    """Smart light with controllable light color and intensity"""
+    """Smart light with controllable light color and intensity."""
 
-    def set_color(self, color: Colors):
-        """Set the light's color to the specified RGP tuple or a css color name
+    def set_color(self, color: Colors) -> None:
+        """Set the light's color to the specified RGP tuple or a css color name.
 
         Example:
             >>>
@@ -1205,8 +1207,8 @@ class SmartLight(EntityBase["SmartLight"]):
         """
         self._set_vector3d("setColor", _parse_color(color))
 
-    def set_intensity(self, intensity: float):
-        """Set the light's intensity to the specified value in candelas (from 0 to 50)
+    def set_intensity(self, intensity: float) -> None:
+        """Set the light's intensity to the specified value in candelas (from 0 to 50).
 
         Example:
             >>>
@@ -1217,7 +1219,7 @@ class SmartLight(EntityBase["SmartLight"]):
         """
         self._set_float("setIntensity", intensity)
 
-    def set_enabled(self, is_enabled: bool):
+    def set_enabled(self, is_enabled: bool) -> None:
         """Turn the light on or off immediately.
 
         Args:
@@ -1232,7 +1234,7 @@ class SmartLight(EntityBase["SmartLight"]):
         """
         self._set_bool("setEnabled", is_enabled)
 
-    def toggle(self):
+    def toggle(self) -> None:
         """Toggle the light on or off depending on its current state.
 
         Example:
@@ -1248,7 +1250,7 @@ class SmartLight(EntityBase["SmartLight"]):
 class SmartSpeaker(EntityBase["SmartSpeaker"]):
     """Controllable smart speaker that can play a selection of builtin songs or songs by url / filename."""
 
-    def set_volume(self, volume: float):
+    def set_volume(self, volume: float) -> None:
         """Change the relative volume of this speaker.
 
         Args:
@@ -1264,7 +1266,7 @@ class SmartSpeaker(EntityBase["SmartSpeaker"]):
         """
         self._set_float("setVolume", volume)
 
-    def set_sound_by_name(self, name: BuiltinMusic):
+    def set_sound_by_name(self, name: BuiltinMusic) -> None:
         """Play one of builtin songs / playlists that come with this speaker.
 
         Args:
@@ -1374,7 +1376,7 @@ class SmartTracker(EntityBase["SmartTracker"]):
         """
         return self._get_float("Mass")
 
-    def editor_set_sensor_noise_level(self, new_noise: float):
+    def editor_set_sensor_noise_level(self, new_noise: float) -> None:
         """Set the standard deviation of the gaussian noise added to the smart tracker's sensor readings.
 
         Args:
@@ -1391,7 +1393,7 @@ class SmartTracker(EntityBase["SmartTracker"]):
         linear_acceleration: bool | None = None,
         angular_acceleration: bool | None = None,
         mass: bool | None = None,
-    ):
+    ) -> None:
         """[Level Editor Only] Specify what kind of sensors this smart tracker has.
 
         Args:
@@ -1452,8 +1454,8 @@ class FactBox(EntityBase["FactBox"]):
         """
         return self._get_float("DistanceToPlayer")
 
-    def focus(self):
-        """Just focusing the lootbox? Now that would be cheating wouldn't it? Try get_distance_to_player() instead"""
+    def focus(self) -> None:
+        """Just focusing the lootbox? Now that would be cheating wouldn't it? Try get_distance_to_player() instead."""
         print(
             "Just focusing the lootbox? Now that would be cheating wouldn't it? Try get_distance_to_player() instead.",
             Colors.Yellow,
@@ -1461,7 +1463,7 @@ class FactBox(EntityBase["FactBox"]):
 
 
 class DetectionData(BaseEventData):
-    def __init__(self, new_vals: dict[str, Any]):
+    def __init__(self, new_vals: dict[str, Any]) -> None:
         super().__init__(new_vals)
         """Object detection data returned by a SmartCamera"""
 
@@ -1484,7 +1486,7 @@ class DetectionData(BaseEventData):
 class SmartCamera(EntityBase["SmartCamera"]):
     """Camera with adjustable zoom that can return RGB images and optionally several other kinds of images (depends on SimEnv)."""
 
-    def set_fov(self, fov: float):
+    def set_fov(self, fov: float) -> None:
         """Set the field-of-view (in degrees) of this camera to zoom in / out.
 
         Args:
@@ -1527,7 +1529,7 @@ class SmartCamera(EntityBase["SmartCamera"]):
         """
         return [DetectionData(d) for d in self._get_json("ObjectDetections")["items"]]
 
-    def editor_set_camera_type(self, new_type: CameraType):
+    def editor_set_camera_type(self, new_type: CameraType) -> None:
         """[Level Editor Only] Change the camera's operating type.
 
         Args:
@@ -1539,9 +1541,9 @@ class SmartCamera(EntityBase["SmartCamera"]):
         self,
         by_class=False,
         by_name=False,
-        by_class_dict: dict[str, int] = dict(),
-        by_name_dict: dict[str, int] = dict(),
-    ):
+        by_class_dict: dict[str, int] | None = None,
+        by_name_dict: dict[str, int] | None = None,
+    ) -> None:
         """Set the segmentation rules. Only applicable if this operates as an image segmentation camera.
 
         Args:
@@ -1550,6 +1552,10 @@ class SmartCamera(EntityBase["SmartCamera"]):
             by_class_dict (Dict[str,int]): Supply a custom dictionary of class name and segmentation id lookups. Segmentation id must be an integer within [2,255].
             by_name_dict (Dict[str,int]): Supply a custom dictionary of entity name and segmentation id lookups. Segmentation id must be an integer within [2,255].
         """
+        if by_name_dict is None:
+            by_name_dict = {}
+        if by_class_dict is None:
+            by_class_dict = {}
         if (
             int(by_class)
             + int(by_name)
@@ -1557,8 +1563,9 @@ class SmartCamera(EntityBase["SmartCamera"]):
             + int(len(by_name_dict) > 0)
             != 1
         ):
+            msg = "You must specificy exactly one of the four parameters."
             raise JoyfulException(
-                "You must specificy exactly one of the four parameters.",
+                msg,
             )
 
         segment_by = {
@@ -1573,7 +1580,7 @@ class SmartCamera(EntityBase["SmartCamera"]):
 class AirSupplyDrop(EntityBase["AirSupplyDrop"]):
     """An aerial based supply drop that can be called in."""
 
-    def drop_supplies(self, target_location: Vector3, *args: float):
+    def drop_supplies(self, target_location: Vector3, *args: float) -> None:
         """Drop a supply crate at the specified location. Target location is not guaranteed.
 
         Args:
@@ -1585,7 +1592,7 @@ class AirSupplyDrop(EntityBase["AirSupplyDrop"]):
         """Get the number of remaining supply drops."""
         return self._get_int("SuppliesLeft")
 
-    def editor_set_supplies_left(self, new_supplies: int):
+    def editor_set_supplies_left(self, new_supplies: int) -> None:
         """[Level Editor Only] Change the number of remaing supply drops.
 
         Args:
@@ -1593,7 +1600,7 @@ class AirSupplyDrop(EntityBase["AirSupplyDrop"]):
         """
         self._set_int("SetSuppliesLeft", new_supplies)
 
-    def editor_set_drop_randomization(self, uniform_range: Vector3, *args: float):
+    def editor_set_drop_randomization(self, uniform_range: Vector3, *args: float) -> None:
         """Add the specified uniform random vector to each supply drop location the player specifies.
 
         Args:
@@ -1605,7 +1612,7 @@ class AirSupplyDrop(EntityBase["AirSupplyDrop"]):
 class Crate(EntityBase["Crate"]):
     """A crate that can be opened. Contents and consequences of opening a crate differ from crate to crate and depend on the current level."""
 
-    def open(self):
+    def open(self) -> None:
         """Open this crate. Contents and consequences of opening a crate differ from crate to crate and depend on the current level."""
         self._set_void("Open")
 
@@ -1613,7 +1620,7 @@ class Crate(EntityBase["Crate"]):
 class RobotArm(EntityBase["RobotArm"]):
     """Programmable robot arm with inverse kinematics control and a strong grabber to move items around."""
 
-    def set_grabber_location(self, vec: Vector3, *args: float):
+    def set_grabber_location(self, vec: Vector3, *args: float) -> None:
         """Set the relative location of the grabber endpoint (XYZ in meters).
 
         Args:
@@ -1653,7 +1660,7 @@ class RobotArm(EntityBase["RobotArm"]):
         """
         return self._get_bool("IsMoving")
 
-    def pickup(self):
+    def pickup(self) -> None:
         """Pickup an object within range of the grabber endpoint.
 
         Example:
@@ -1666,7 +1673,7 @@ class RobotArm(EntityBase["RobotArm"]):
         """
         self._set_void("Pickup")
 
-    def release(self):
+    def release(self) -> None:
         """Release any grabbed objects.
 
         Example:
@@ -1679,7 +1686,7 @@ class RobotArm(EntityBase["RobotArm"]):
         """
         self._set_void("Release")
 
-    def editor_set_size_limit(self, max_size: float):
+    def editor_set_size_limit(self, max_size: float) -> None:
         """[Level Editor Only] Set the maximum size of objects this airlift can carry. Diameter in meters.
 
         Args:
@@ -1687,21 +1694,21 @@ class RobotArm(EntityBase["RobotArm"]):
         """
         self._set_float("setSizeLimit", max_size)
 
-    def editor_set_can_carry_non_physics(self, is_enabled: bool):
+    def editor_set_can_carry_non_physics(self, is_enabled: bool) -> None:
         """[Level Editor Only] Enable or disable the possibility to carry around non physically simulated objects. Careful, this means the player can lift up anything."""
         self._set_bool("setCanCarryNonPhysics", is_enabled)
 
-    def editor_set_block_collisions(self, is_enabled: bool):
+    def editor_set_block_collisions(self, is_enabled: bool) -> None:
         """[Level Editor only] Enable or disable blocking collisions on movement. Default is enabled. Disabled allows clipping through walls."""
         self._set_bool("setBlockCollisions", is_enabled)
 
-    def editor_set_carry_collisions(self, is_enabled: bool):
+    def editor_set_carry_collisions(self, is_enabled: bool) -> None:
         """[Level Editor only] Enable or disable blocking collisions on movement for the carried object. Default is disabled. Disabled allows clipping of the carried object through walls."""
         self._set_bool("setCarryCollisions", is_enabled)
 
 
 class TeleportEvent(BaseEventData):
-    def __init__(self, new_vals: dict[str, Any]):
+    def __init__(self, new_vals: dict[str, Any]) -> None:
         super().__init__(new_vals)
 
         self.receiver: SmartPortal = SmartPortal.find(new_vals["receiver"])
@@ -1711,7 +1718,7 @@ class TeleportEvent(BaseEventData):
 class SmartPortal(EntityBase["SmartPortal"]):
     """A portal that will teleport any entity that enters to another portal with the same channel_id. If more than two portals with the same channel_id exist a random one will be selected for each teleport."""
 
-    def editor_set_channel(self, channel_id: int = 0):
+    def editor_set_channel(self, channel_id: int = 0) -> None:
         """[Level Editor Only] Set the channel this portal is operating on. Must be within [0...10]. Will teleport any entity that enters to another portal with the same channel_id. If more than two portals with the same channel_id exist a random one will be selected for each teleport.
 
         Args:
@@ -1722,7 +1729,7 @@ class SmartPortal(EntityBase["SmartPortal"]):
     def on_teleport(
         self,
         handler: Callable[["SmartPortal", float, TeleportEvent], None],
-    ):
+    ) -> None:
         """Event called when something enters / overlaps or exits this zone.
 
         Args:
@@ -1742,7 +1749,7 @@ class SmartPortal(EntityBase["SmartPortal"]):
         """
         import json
 
-        def wrapper(sender: SmartPortal, gametime: float, nparr: NPArray):
+        def wrapper(sender: SmartPortal, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             tele = None
             try:
@@ -1769,7 +1776,7 @@ class Killzone(EntityBase["Killzone"]):
         """
         return self._get_int("KillCount")
 
-    def set_filter_tags(self, rfid_tags: Sequence[str] | str):
+    def set_filter_tags(self, rfid_tags: Sequence[str] | str) -> None:
         """Filter entities that enter the kill-zone and remove only those that contain one of the specified rfid tags. Tags are case-sensitive.
 
         Args:
@@ -1784,7 +1791,7 @@ class Killzone(EntityBase["Killzone"]):
             rfid_tags = ",".join([str(t) for t in rfid_tags])
         self._set_string("setFilterTags", rfid_tags)
 
-    def set_autokill_enabled(self, is_enabled: bool):
+    def set_autokill_enabled(self, is_enabled: bool) -> None:
         """Enable or disable automatic removal of objects on overlap. If disabled, you need to manually call "kill()" to trigger removal of all overlapping objects.
 
         Args:
@@ -1798,7 +1805,7 @@ class Killzone(EntityBase["Killzone"]):
         """
         self._set_bool("setAutokillEnabled", is_enabled)
 
-    def kill(self):
+    def kill(self) -> None:
         """Remove all overlapping objects in this killzone immediately.
 
         Example:
@@ -1809,11 +1816,11 @@ class Killzone(EntityBase["Killzone"]):
         """
         self._set_void("Kill")
 
-    def editor_allow_custom_filter(self, is_allowed: bool):
+    def editor_allow_custom_filter(self, is_allowed: bool) -> None:
         """[Level Editor Only] Allow to change the custom entity filters or not. Does not reset the filter once it is set."""
         self._set_bool("AllowCustomFilter", is_allowed)
 
-    def on_kill(self, handler: Callable[["Killzone", float, BaseEventData], None]):
+    def on_kill(self, handler: Callable[["Killzone", float, BaseEventData], None]) -> None:
         """Event called when something enters this kill-zone and is destroyed.
 
         Args:
@@ -1834,7 +1841,7 @@ class Killzone(EntityBase["Killzone"]):
         """
 
         # wrap and dispatch event
-        def wrapper(sender: Killzone, gametime: float, nparr: NPArray):
+        def wrapper(sender: Killzone, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             dat = None
             try:
@@ -1851,7 +1858,7 @@ class Killzone(EntityBase["Killzone"]):
 class AirstrikeControl(EntityBase["AirstrikeControl"]):
     """Satellite guided airstrike launcher. Provide 2D coordinates in range [0,1] as the target launch position."""
 
-    def hide_coordinates(self, hidden=True):
+    def hide_coordinates(self, hidden=True) -> None:
         """Show or hide the coordinate system of the target area.
 
         Args:
@@ -1863,7 +1870,7 @@ class AirstrikeControl(EntityBase["AirstrikeControl"]):
         """
         self._set_bool("HideCoordinates", hidden)
 
-    def launch(self, x: float, y: float, z=0.0):
+    def launch(self, x: float, y: float, z=0.0) -> None:
         """Launch an airstrike at the provided target location. Time to target is approximately 3 seconds.
 
         Args:
@@ -1896,7 +1903,7 @@ class AirstrikeControl(EntityBase["AirstrikeControl"]):
 class Artillery(EntityBase["Artillery"]):
     """Artillery launcher."""
 
-    def set_target_rotation(self, rotation: Rotator3, *args: float):
+    def set_target_rotation(self, rotation: Rotator3, *args: float) -> None:
         """Set the target launch rotation in roll,pitch,yaw. roll is ignored. pitch is degrees within [5,80] and yaw is degrees within [-360,360].
 
         Args:
@@ -1925,7 +1932,7 @@ class Artillery(EntityBase["Artillery"]):
         """
         return self._get_bool("IsMoving")
 
-    def fire(self, muzzle_velocity: float):
+    def fire(self, muzzle_velocity: float) -> None:
         """Fire a 3kg shell with the specified exit muzzle velocity in [2,100] m/s.
 
         Args:
@@ -1941,7 +1948,7 @@ class Artillery(EntityBase["Artillery"]):
         """
         self._set_float("Fire", muzzle_velocity)
 
-    def editor_set_reload_time(self, new_reload_time: float):
+    def editor_set_reload_time(self, new_reload_time: float) -> None:
         """[Level Editor Only] Adjust the reload time (cooldown) of this artillery after every shell fired.
 
         Args:
@@ -2010,7 +2017,7 @@ class DigitalScale(EntityBase["DigitalScale"]):
 class PinHacker(EntityBase["PinHacker"]):
     """Brute force hacking device for PIN numbers."""
 
-    def enter_pin(self, pin: int):
+    def enter_pin(self, pin: int) -> None:
         """Enter a candidate PIN into the hacking device.
 
         Example:
@@ -2098,8 +2105,8 @@ class VoxelBuilder(EntityBase["VoxelBuilder"]):
         location: Vector3 | Sequence[float] = (0.0, 0.0, 0.0),
         color=Colors.Grey,
         simulate_physics=False,
-    ):
-        """Spawn voxels / cubes / boxes at the specified location and the specified color. Asynchronous, so you need to call sleep() in-between calls to build()
+    ) -> None:
+        """Spawn voxels / cubes / boxes at the specified location and the specified color. Asynchronous, so you need to call sleep() in-between calls to build().
 
         Args:
             location: tuple x (forward), y (right), z (up) in meters.
@@ -2215,7 +2222,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         super()._set_out_data(k, nparr, False)
         if LevelEditor._is_construct_only():
             print("initializing level editor...")
-        for i in range(6):
+        for _i in range(6):
             time.sleep(1)
             all = cls._find_all_internal()
             if len(all) > 0:
@@ -2227,7 +2234,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         from pyjop.Network import SimEnv
 
         SimEnv.disconnect()
-        exit()
+        sys.exit()
         return None
 
     @staticmethod
@@ -2238,7 +2245,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             return "construct_only" in sys.argv
         return False
 
-    def select_map(self, map_name: SpawnableMaps):
+    def select_map(self, map_name: SpawnableMaps) -> None:
         """Select the specified map for the current custom level.
 
         Example:
@@ -2269,7 +2276,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         is_clickable=True,
         is_readable=True,
         is_controllable=True,
-    ):
+    ) -> None:
         """Spawns a smart entity of the given type with the specified parameters.
 
         Args:
@@ -2325,8 +2332,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
         adjust_z=False,
         lifetime=-1.0,
         adjust_coll=False,
-    ):
-        """Spawns the specified static mesh with the optional material
+    ) -> None:
+        """Spawns the specified static mesh with the optional material.
 
         Args:
             mesh (str): the mesh to spawn, e.g. SpawnableMeshes.Cube
@@ -2372,7 +2379,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         scale=Vector3(1),
         color: Colors = Colors.Darkgray,
         rfid_tag="",
-    ):
+    ) -> None:
         """Spawn a destructible cube. Will burst into small pieces upon receiving damage from physical impacts. Note that destructibles are always consider temporary objects and will be cleaned up on reset. Re-spawn them after reset if required.
 
         Args:
@@ -2406,8 +2413,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
         is_resettable: bool = True,
         is_optional: bool = False,
         hide_next: bool | None = None,
-    ):
-        """Specify a goal for this level and how it should be evaluated
+    ) -> None:
+        """Specify a goal for this level and how it should be evaluated.
 
         Args:
             unique_name (str): unique name of the goal
@@ -2447,7 +2454,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             else:
                 self._goal_funcs[unique_name] = update_func
 
-    def set_goals_intro_text(self, new_text: str):
+    def set_goals_intro_text(self, new_text: str) -> None:
         """Set / update intro text before the goals display.
 
         Args:
@@ -2455,7 +2462,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """
         self._set_string("SetGoalsIntroText", new_text)
 
-    def set_optional_goals_intro_text(self, new_text: str):
+    def set_optional_goals_intro_text(self, new_text: str) -> None:
         """Set / update intro text before the optional goals display.
 
         Args:
@@ -2468,7 +2475,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         unique_name: str,
         new_progress: float,
         new_text: str = "",
-    ):
+    ) -> None:
         """Update the progress of the specified goal, optionally changing the display text as well.
 
         Args:
@@ -2500,7 +2507,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         unique_name: str,
         new_state: GoalState,
         new_text: str = "",
-    ):
+    ) -> None:
         """Update the state of the specified goal, optionally changing the display text as well.
 
         Args:
@@ -2529,8 +2536,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def on_level_reset(self, func: Callable[[], None]):
-        """Register a function that fires every time the level is reset
+    def on_level_reset(self, func: Callable[[], None]) -> None:
+        """Register a function that fires every time the level is reset.
 
         Args:
             func (Callable[[],None]): the function to register
@@ -2544,7 +2551,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             editor.on_level_reset(my_reset_func)
         """
 
-        def wrapper(gametime: float, deltatime: float):
+        def wrapper(gametime: float, deltatime: float) -> bool:
             if self._last_tick > self._current_tick:
                 time.sleep(0.04)
                 func()
@@ -2553,8 +2560,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
         self._dynamic_funcs["on_level_reset_84654"] = wrapper
         # self._on_level_reset_handler = func
 
-    def on_begin_play(self, func: Callable[[], None]):
-        """Register a function that executes once on begin play after the level has been fully constructed
+    def on_begin_play(self, func: Callable[[], None]) -> None:
+        """Register a function that executes once on begin play after the level has been fully constructed.
 
         Args:
             func (Callable[[],None]): the function to register
@@ -2566,8 +2573,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
             editor.on_begin_play(my_beginplay_func)
         """
 
-        def wrapper(gametime: float, deltatime: float):
-            if LevelEditor._is_construct_only() == False and gametime < 1:
+        def wrapper(gametime: float, deltatime: float) -> bool:
+            if LevelEditor._is_construct_only() is False and gametime < 1:
                 return False
             func()
             sleep()
@@ -2575,7 +2582,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
         self._dynamic_funcs["on_begin_play_84654"] = wrapper
 
-    def on_tick(self, func: Callable[[float, float], None]):
+    def on_tick(self, func: Callable[[float, float], None]) -> None:
         """Register a function that executes on every data exchange with the SimEnv. Provides current gametime and time since last tick call (both in seconds) as two parameters.
 
         Args:
@@ -2594,7 +2601,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             editor.on_tick(on_tick)
         """
 
-        def wrapper(gametime: float, deltatime: float):
+        def wrapper(gametime: float, deltatime: float) -> bool:
             if gametime < 1.5:
                 return False
             func(gametime, deltatime)
@@ -2605,10 +2612,10 @@ class LevelEditor(EntityBase["LevelEditor"]):
     def on_player_command(
         self,
         handler: Callable[[float, str, str, str, NPArray], None],
-    ):
+    ) -> None:
         """Register an event that gets fired anytime the player sends an api command to the game."""
 
-        def wrapper(sender: LevelEditor, gametime: float, nparr: NPArray):
+        def wrapper(sender: LevelEditor, gametime: float, nparr: NPArray) -> None:
             # print(f"_eventOnPlayerCommand: {nparr.array_data}")
             nparr_inner = NPArray.from_msg(nparr.array_data.squeeze().tobytes())
             nameparts = nparr_inner.unique_name.split(".")
@@ -2627,8 +2634,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
         rotation=Rotator3(0),
         scale=Vector3(1),
         color: Colors | None = None,
-    ):
-        """Shows the specified vfx effect at run-time
+    ) -> None:
+        """Shows the specified vfx effect at run-time.
 
         Args:
             vfx (str): the vfx effect to play
@@ -2655,8 +2662,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
         volume=1.0,
         is_ui=False,
         location=Vector3(0),
-    ):
-        """Plays the specified one-shot sound effect at run-time
+    ) -> None:
+        """Plays the specified one-shot sound effect at run-time.
 
         Args:
             sfx (str): the sound effect to play
@@ -2677,7 +2684,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def show_image(self, image: SpawnableImages):
+    def show_image(self, image: SpawnableImages) -> None:
         """Shows the specified image at run-time.
 
         Args:
@@ -2707,7 +2714,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         location=Vector3(0),
         rotation=Rotator3(0),
         scale=Vector3(1),
-    ):
+    ) -> None:
         """Shows the specified video at run-time.
 
         Args:
@@ -2742,7 +2749,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         location=Vector3(0),
         rotation=Rotator3(0),
         scale=Vector3(1),
-    ):
+    ) -> NoReturn:
         """Shows the supplied text on-screen with a typewriter effect.
 
         Args:
@@ -2828,7 +2835,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         return self._get_float("Mass" + unique_name)
 
     def get_bounds(self, unique_name: str) -> np.ndarray:
-        """Get the current axis aligned bounding box (AABB) of the named entity/mesh that you spawned from the level editor. Returns min and max vectors in a 2x3 numpy array in meters
+        """Get the current axis aligned bounding box (AABB) of the named entity/mesh that you spawned from the level editor. Returns min and max vectors in a 2x3 numpy array in meters.
 
         Args:
             unique_name (str): unique name of the entity, as initially defined in the spawn_entity or spawn_static_mesh function.
@@ -2848,7 +2855,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         unique_name: str,
         new_location: tuple[float, float, float],
         duration: float = 0.0,
-    ):
+    ) -> None:
         """Set the current location of the named entity/mesh that you spawned from the level editor.
 
         Args:
@@ -2871,7 +2878,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         unique_name: str,
         new_rotation: tuple[float, float, float],
         duration: float = 0.0,
-    ):
+    ) -> None:
         """Rotate the named entity/mesh that you spawned from the level editor.
 
         Args:
@@ -2894,7 +2901,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         unique_name: str,
         new_scale: tuple[float, float, float],
         duration: float = 0.0,
-    ):
+    ) -> None:
         """The the new size / scale of the named entity/mesh that you spawned from the level editor.
 
         Args:
@@ -2912,7 +2919,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_color(self, unique_name: str, color: Colors, duration: float = 0.0):
+    def set_color(self, unique_name: str, color: Colors, duration: float = 0.0) -> None:
         """The the new color of the named entity/mesh that you spawned from the level editor. Not all entities / meshes / materials support custom colors.
 
         Args:
@@ -2929,7 +2936,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_clickable(self, unique_name: str, is_clickable: bool):
+    def set_clickable(self, unique_name: str, is_clickable: bool) -> None:
         """Set the entity that you spawned from the level editor to be clickable by the player or not.
 
         Args:
@@ -2942,7 +2949,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_controllable(self, unique_name: str, is_controllable: bool):
+    def set_controllable(self, unique_name: str, is_controllable: bool) -> None:
         """Set the entity that you spawned from the level editor to be controllable by the player or not.
 
         Args:
@@ -2955,7 +2962,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_readable(self, unique_name: str, is_readable: bool):
+    def set_readable(self, unique_name: str, is_readable: bool) -> None:
         """Set the entity that you spawned from the level editor to be readable by the player or not.
 
         Args:
@@ -2970,7 +2977,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
     # def set_temperature() TODO: temperature system
 
-    def set_rfid_tag(self, unique_name: str, rfid_tag: str):
+    def set_rfid_tag(self, unique_name: str, rfid_tag: str) -> None:
         """Set or add the rfid tag to the entity that you spawned from the level editor.
 
         Args:
@@ -2983,7 +2990,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_enabled(self, unique_name: str, is_enabled: bool, component_name=""):
+    def set_enabled(self, unique_name: str, is_enabled: bool, component_name="") -> None:
         """Completely enable or disable the named entity that you spawned from the level editor. if component_name is specified, only enable or disable that component.
 
         Args:
@@ -3001,7 +3008,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_hidden(self, unique_name: str, is_hidden: bool):
+    def set_hidden(self, unique_name: str, is_hidden: bool) -> None:
         """Hide or show the named entity that you spawned from the level editor.
 
         Args:
@@ -3014,7 +3021,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_collision_enabled(self, unique_name: str, is_enabled: bool):
+    def set_collision_enabled(self, unique_name: str, is_enabled: bool) -> None:
         """Enable or disable collision for the named entity that you spawned from the level editor.
 
         Args:
@@ -3027,7 +3034,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_lifetime(self, unique_name: str, lifetime: float):
+    def set_lifetime(self, unique_name: str, lifetime: float) -> None:
         """Set the remaining lifetime for an object and destroy it afterwards. Setting to <= 0 disables the lifetime counter.
 
         Args:
@@ -3053,7 +3060,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         unique_name: str,
         features: dict[str, Any],
         target: str | int | float,
-    ):
+    ) -> None:
         """Assign features and a target to an entity for machine learning challenges."""
         self._set_json(
             "SetFeatureData",
@@ -3065,7 +3072,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """The the target label or target value from the feature data as assigned by set_feature_data()."""
         return self._get_string("FeatureTarget" + unique_name)
 
-    def apply_impulse(self, unique_name: str, impulse: Vector3, ignore_mass=True):
+    def apply_impulse(self, unique_name: str, impulse: Vector3, ignore_mass=True) -> None:
         """Apply a physical impulse to the specified named entity. Entity must be simulating physics for this to have an effect.
 
         Args:
@@ -3079,11 +3086,11 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_weather_scenario(self, weather: WeatherScenario):
+    def set_weather_scenario(self, weather: WeatherScenario) -> None:
         """Set the current weather scenario. Only available for some outdoor levels."""
         self._set_int("SetWeatherScenario", int(weather))
 
-    def set_time_of_day(self, hours_since_midnight: float):
+    def set_time_of_day(self, hours_since_midnight: float) -> None:
         """Set the current time within the simulation to change the natural lighting. Only available for some outdoor levels.
 
         Args:
@@ -3091,7 +3098,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """
         self._set_float("SetTimeOfDay", hours_since_midnight)
 
-    def set_month_of_year(self, month: int):
+    def set_month_of_year(self, month: int) -> None:
         """Set the current month of the year. This influences the current weather scenario (rain or snow for example) and the time dependent lighting situation. Only available for some outdoor levels.
 
         Args:
@@ -3108,7 +3115,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         angular_limits: Rotator3 | None = None,
         dampening: float = 5.0,
         stiffness: float = 50.0,
-    ):
+    ) -> None:
         """Attach named entity child to entity parent with the given joint constraint.
 
         Args:
@@ -3122,7 +3129,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
         """
         if name_child == name_parent:
-            raise Exception("Entities child and parent cannot the same")
+            msg = "Entities child and parent cannot the same"
+            raise Exception(msg)
         json_dict = {
             "NameChild": name_child,
             "NameParent": name_parent,
@@ -3146,7 +3154,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         length_limits: Vector3 | None = None,
         dampening: float = 5.0,
         stiffness: float = 50.0,
-    ):
+    ) -> None:
         """Attach named entity child to entity parent with the given spring constraint.
 
         Args:
@@ -3159,7 +3167,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
             stiffness (float, optional): Linear stiffness of the spring. Defaults to 50.0.
         """
         if name_child == name_parent:
-            raise Exception("Entities child and parent cannot the same")
+            msg = "Entities child and parent cannot the same"
+            raise Exception(msg)
         json_dict = {
             "NameChild": name_child,
             "NameParent": name_parent,
@@ -3174,7 +3183,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             json_dict["LengthLimits"] = _parse_vector(length_limits)
         self._set_json("AttachEntities", json_dict, True)
 
-    def weld_entities(self, name_child: str, name_parent: str):
+    def weld_entities(self, name_child: str, name_parent: str) -> None:
         """Weld entity child to entity parent, keeping their current relative location offset.
 
         Args:
@@ -3182,7 +3191,8 @@ class LevelEditor(EntityBase["LevelEditor"]):
             name_parent (str): parent entity
         """
         if name_child == name_parent:
-            raise Exception("Entities child and parent cannot the same")
+            msg = "Entities child and parent cannot the same"
+            raise Exception(msg)
         json_dict: dict[str, Any] = {
             "NameChild": name_child,
             "NameParent": name_parent,
@@ -3190,7 +3200,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
         self._set_json("WeldEntities", json_dict, True)
 
-    def destroy(self, unique_name: str):
+    def destroy(self, unique_name: str) -> None:
         """Destroy / remove the entity/mesh that you spawned from the level editor.
 
         Args:
@@ -3198,15 +3208,15 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """
         self._set_string("Destroy", unique_name, True)
 
-    def destroy_temporaries(self):
-        """Destroy / remove all entities / meshes that you spawned with the flag "is_temp=True" """
+    def destroy_temporaries(self) -> None:
+        """Destroy / remove all entities / meshes that you spawned with the flag "is_temp=True"."""
         self._set_void("DestroyTemporaries")
 
-    def clear_all(self):
+    def clear_all(self) -> None:
         """Clears the entire level, removing all spawned objects."""
         self._set_void("ClearAll")
 
-    def fade_out(self, duration=1.0):
+    def fade_out(self, duration=1.0) -> None:
         """Fade the current level to black within the specified duration.
 
         Args:
@@ -3214,7 +3224,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """
         self._set_float("FadeOut", duration)
 
-    def fade_in(self, duration=1.0):
+    def fade_in(self, duration=1.0) -> None:
         """Fade the current level into view within the specified duration.
 
         Args:
@@ -3228,7 +3238,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         target_entity="",
         color: Colors = Colors.Red,
         duration=-1.0,
-    ):
+    ) -> None:
         """Ping a location or a uniquely named entity by creating a flashing indicator arrow on top of it. Disappears upon player click or after duration if > 0.
 
         Args:
@@ -3248,7 +3258,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def play_camera_sequence(self, camera_waypoints: Sequence[CameraWaypoint]):
+    def play_camera_sequence(self, camera_waypoints: Sequence[CameraWaypoint]) -> None:
         """Play a camera sequence to show the player something in the level.
 
         Args:
@@ -3269,9 +3279,9 @@ class LevelEditor(EntityBase["LevelEditor"]):
     def get_player_code(self) -> str:
         """Get the complete python code the player has currently entered. Useful to provide tutorials, interactive code help or hints."""
         code = self._get_json("PlayerCode")
-        return code["value"] if "value" in code else ""
+        return code.get("value", "")
 
-    def add_player_code_hint(self, hint_text: str, line_number=-1):
+    def add_player_code_hint(self, hint_text: str, line_number=-1) -> None:
         """Add a code hint directly in the player's python code. will be prepended with a comment #HINT: sign for security reasons. So you can only provide code hints, not working code to the player. They have to integrate your code hints themselves."""
         self._set_json("PlayerCodeHint", {"hint": hint_text, "line": line_number}, True)
 
@@ -3281,7 +3291,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         questions: list[str],
         answer: str = "",
         on_reveal: Callable[[float, int, int], None] | None = None,
-    ):
+    ) -> None:
         """Set a hint / tip for this level accessible to the player via the Assistant window.
 
         Args:
@@ -3292,8 +3302,9 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
         """
         if num < 0 or num > 255:
+            msg = f"Hint num must be between 0 and 255, yours was f{num}"
             raise JoyfulException(
-                f"Hint num must be between 0 and 255, yours was f{num}",
+                msg,
             )
 
         if type(questions) is str:
@@ -3309,7 +3320,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
         # self._dynamic_funcs["on_reveal_" + str(num)] = wrapper
 
-        def wrapper(sender: LevelEditor, gametime: float, nparr: NPArray):
+        def wrapper(sender: LevelEditor, gametime: float, nparr: NPArray) -> None:
             num_reveals = int.from_bytes(
                 nparr.array_data.squeeze().tobytes(),
                 "little",
@@ -3328,9 +3339,10 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def change_hint(self, num: int, answer: str = ""):
+    def change_hint(self, num: int, answer: str = "") -> None:
         if num < 0 or num > 255:
-            raise Exception(f"Hint num must be between 0 and 255, yours was f{num}")
+            msg = f"Hint num must be between 0 and 255, yours was f{num}"
+            raise Exception(msg)
         self._set_json("SetHint", {"Num": num, "Answer": answer}, True)
 
     # def remove_hint(self, num:int):
@@ -3345,7 +3357,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
     #     """Get a list of all the hints the player revealed thus far."""
     #     return self._get_array_raw("RevealedHints", [1,0,1]).tolist()
 
-    def set_map_bounds(self, center=Vector3(0), extends=Vector3(32, 32, 16)):
+    def set_map_bounds(self, center=Vector3(0), extends=Vector3(32, 32, 16)) -> None:
         """Change the map bounds (the area the player can move within) to the specified center and extends (in meters).
 
         Args:
@@ -3358,14 +3370,15 @@ class LevelEditor(EntityBase["LevelEditor"]):
         )
         sleep()
 
-    def set_building_budget(self, budget: int):
+    def set_building_budget(self, budget: int) -> NoReturn:
         """Set the player's budget to place/build machines on their own. A budget of 0 means no limit on budget. A budget < 0 disables placement entirely.
 
         Args:
             budget (int): Building budget.
         """
+        msg = "Building / Budget system is WIP and not available yet."
         raise NotImplementedError(
-            "Building / Budget system is WIP and not available yet.",
+            msg,
         )
         self._set_int("SetBuildingBudget", budget)
 
@@ -3374,7 +3387,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         allow_list: list[BuildingEntry],
         forbid_unlisted=False,
         reset=False,
-    ):
+    ) -> NoReturn:
         """Provide a list of machines the player will be allowed to purchase and build. The counts indicate how many are available at most. 0 means infinite. -1 means unavailable.
 
         Args:
@@ -3382,8 +3395,9 @@ class LevelEditor(EntityBase["LevelEditor"]):
             forbid_unlisted (boolean): Make all unlisted buildings infinitely available or forbid them entirely.
             reset (boolean): Reset all allowed buildings or only change the ones supplied
         """
+        msg = "Building / Budget system is WIP and not available yet."
         raise NotImplementedError(
-            "Building / Budget system is WIP and not available yet.",
+            msg,
         )
         self._set_json(
             "SetAllowedBuildings",
@@ -3394,15 +3408,16 @@ class LevelEditor(EntityBase["LevelEditor"]):
             },
         )
 
-    def set_building_area(self, center: Vector3, extends: Vector3):
+    def set_building_area(self, center: Vector3, extends: Vector3) -> NoReturn:
         """Restricts player building to the specified rectangular area.
 
         Args:
             center (Vector3): Center of the building area in meters.
             extends (Vector3): Extends (half size in all directions) of the building area in meters.
         """
+        msg = "Building / Budget system is WIP and not available yet."
         raise NotImplementedError(
-            "Building / Budget system is WIP and not available yet.",
+            msg,
         )
         self._set_json(
             "SetBuildingArea",
@@ -3411,19 +3426,22 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
     def get_used_budget(self) -> float:
         """Get the current budget used by the player. Negative amounts indicate a surplus."""
+        msg = "Building / Budget system is WIP and not available yet."
         raise NotImplementedError(
-            "Building / Budget system is WIP and not available yet.",
+            msg,
         )
         return self._get_float("UsedBudget")
 
     def get_current_money(self) -> float:
         """Get the current amount of money the player has."""
-        raise NotImplementedError("Money system WIP")
+        msg = "Money system WIP"
+        raise NotImplementedError(msg)
         return self._get_float("CurrentMoney")
 
-    def set_current_money(self, new_amount: float):
+    def set_current_money(self, new_amount: float) -> NoReturn:
         """Set the current amount of money the player has. Also useful as a proxy for some kind of winning score."""
-        raise NotImplementedError("Money system WIP")
+        msg = "Money system WIP"
+        raise NotImplementedError(msg)
         self._set_float("SetCurrentMoney", new_amount)
 
     def set_template_code(
@@ -3431,7 +3449,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
         new_code: str = "",
         from_line: int = -1,
         from_comment="",
-    ):
+    ) -> None:
         """Set the python template code for this level.
 
         Args:
@@ -3477,7 +3495,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
     # ideas: switch fps/rts mode
 
     # level editor runs in its own process
-    def run_editor_level(self):
+    def run_editor_level(self) -> None:
         """Start the custom level script. Must be the last line of code in a custom level script. Do not remove it."""
         time.sleep(0.55)
         m = SimEnvManager.first()
@@ -3520,7 +3538,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
 
         SimEnv.disconnect()
 
-    def _run_dynamics(self):
+    def _run_dynamics(self) -> None:
         if not self._dynamic_funcs:
             return
         # run all dyn funcs in sequentially
@@ -3538,7 +3556,7 @@ class LevelEditor(EntityBase["LevelEditor"]):
             if k in self._dynamic_funcs:
                 del self._dynamic_funcs[k]
 
-    def _check_goals(self):
+    def _check_goals(self) -> None:
         for k, f in self._optional_goal_funcs.items():
             if k in self._running_goals:
                 continue
@@ -3560,8 +3578,10 @@ class RPCInvoke:
         self,
         func_name: str,
         args: tuple = (),
-        kwargs: dict[str, Any] = {},
+        kwargs: dict[str, Any] | None = None,
     ) -> None:
+        if kwargs is None:
+            kwargs = {}
         self.ts = time.time()
         """Time-stamp in real-time (not game time) of the call."""
         self.func_name = func_name
@@ -3575,7 +3595,7 @@ class RPCInvoke:
 class DataExchange(EntityBase["DataExchange"]):
     """A database to exchange and persist data. Mostly useful to retrieve level specific data or to provide level specific answers."""
 
-    def set_data(self, key: str, value: Any, const=False):
+    def set_data(self, key: str, value: Any, const=False) -> None:
         """Add data to the exchange.
 
         Args:
@@ -3591,7 +3611,7 @@ class DataExchange(EntityBase["DataExchange"]):
         """
         self._set_json("setData", {"Key": key, "Value": value, "Const": const}, True)
 
-    def remove_data(self, key: str):
+    def remove_data(self, key: str) -> None:
         """Remove data with the specified key from the exchange.
 
         Args:
@@ -3637,7 +3657,7 @@ class DataExchange(EntityBase["DataExchange"]):
         start = time.time()
         loaded_data: list[bytes] = []
 
-        def wrapper(sender: DataExchange, gametime: float, nparr: NPArray):
+        def wrapper(sender: DataExchange, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes()
             loaded_data.append(raw)
 
@@ -3664,7 +3684,7 @@ class DataExchange(EntityBase["DataExchange"]):
         all_dat = self._get_json("Data")
         return list(all_dat.keys())
 
-    def editor_store_big_data(self, key: str, dat: bytes):
+    def editor_store_big_data(self, key: str, dat: bytes) -> None:
         """Store large amounts of data under the specified key. This data is only send to the player upon request. It is still stored in RAM, so try and keep the size reasonable (under 1gb).
 
         Args:
@@ -3672,12 +3692,13 @@ class DataExchange(EntityBase["DataExchange"]):
             dat (bytes): raw data as byte sequence
         """
         if self.get_data(key):
+            msg = "The names of big data sets should be different from data already stored in the exchange."
             raise JoyfulException(
-                "The names of big data sets should be different from data already stored in the exchange.",
+                msg,
             )
         self._set_bytes("storeBigData" + key, dat, True)
 
-    def editor_set_readonly(self, is_readonly=True):
+    def editor_set_readonly(self, is_readonly=True) -> None:
         """[Level Editor only] Make this data exchange readonly or not.
 
         Args:
@@ -3710,14 +3731,14 @@ class DataExchange(EntityBase["DataExchange"]):
         else:
             return ""
 
-    def on_rpc(self, handler: Callable[["DataExchange", RPCInvoke], None]):
+    def on_rpc(self, handler: Callable[["DataExchange", RPCInvoke], None]) -> None:
         """React to a remote procedure call.
 
         Args:
             handler (Callable[[DataExchange, RPCInvoke],None]): Event handler called on any remote procedure call
         """
 
-        def wrapper(sender: DataExchange, gametime: float, nparr: NPArray):
+        def wrapper(sender: DataExchange, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             rpcinv = None
             try:
@@ -3730,7 +3751,7 @@ class DataExchange(EntityBase["DataExchange"]):
 
         self._add_event_listener("_eventOnRPC", wrapper)
 
-    def return_rpc(self, func_name: str, val: Any):
+    def return_rpc(self, func_name: str, val: Any) -> None:
         """Return the result for a given remote procedure call and store it in this data exchange.
 
         Args:
@@ -3744,7 +3765,7 @@ class DataExchange(EntityBase["DataExchange"]):
 
 
 def clamp(x, xmin=0, xmax=1):
-    """Clamp the specified value x between the lower and upper limits"""
+    """Clamp the specified value x between the lower and upper limits."""
     if x < xmin:
         return xmin
     if x > xmax:
@@ -3753,9 +3774,9 @@ def clamp(x, xmin=0, xmax=1):
 
 
 class LEDStrip(EntityBase["LEDStrip"]):
-    """programmable LED strip"""
+    """programmable LED strip."""
 
-    def set_all_leds(self, colors: Sequence[tuple[Colors, float]] | np.ndarray):
+    def set_all_leds(self, colors: Sequence[tuple[Colors, float]] | np.ndarray) -> None:
         """Set all LEDs at once by supplying a sequence of color/intensity tuples.
 
         Args:
@@ -3778,8 +3799,8 @@ class LEDStrip(EntityBase["LEDStrip"]):
         self._set_out_data(k, NPArray(k, arr), False)
         self._post_API_call()
 
-    def set_intensity(self, intensity: float):
-        """Set the intensity for the entire LED strip to the specified relative value in [0,1]
+    def set_intensity(self, intensity: float) -> None:
+        """Set the intensity for the entire LED strip to the specified relative value in [0,1].
 
         Args:
             intensity (float): relative intensity in [0,1]
@@ -3790,7 +3811,7 @@ class LEDStrip(EntityBase["LEDStrip"]):
         """
         self._set_float("setIntensity", intensity)
 
-    def set_start_location(self, location: Vector3, *args: float):
+    def set_start_location(self, location: Vector3, *args: float) -> None:
         """Set the relative start location of the led strip. Limited to a +/- 2m adjustment in all directions.
 
         Args:
@@ -3803,7 +3824,7 @@ class LEDStrip(EntityBase["LEDStrip"]):
         """
         self._set_vector3d("setStartLocation", location, add_args=args)
 
-    def set_end_location(self, location: Vector3, *args: float):
+    def set_end_location(self, location: Vector3, *args: float) -> None:
         """Set the relative end location of the led strip. Limited to a +/- 2m adjustment in all directions.
 
         Args:
@@ -3818,7 +3839,7 @@ class LEDStrip(EntityBase["LEDStrip"]):
 
 
 class Maze(EntityBase["Maze"]):
-    """A 2D maze"""
+    """A 2D maze."""
 
     def get_maze_data(self) -> np.ndarray:
         """Get the full maze as a 2D array. Can be None for certain levels.
@@ -3836,7 +3857,7 @@ class Maze(EntityBase["Maze"]):
         xy = self._get_array_raw("MazeSize", [2, 1, 1]).tolist()
         return (int(xy[0]), int(xy[1]))
 
-    def editor_generate_maze(self, width: int, height: int):
+    def editor_generate_maze(self, width: int, height: int) -> None:
         """[Level Editor only] Generate a new maze with the specified width and height.
 
         Args:
@@ -3861,12 +3882,13 @@ class Maze(EntityBase["Maze"]):
         if k in self._in_dict:
             self._post_API_call()
             return self._in_dict[k].array_data[:, :, 0]
+        return None
 
-    def editor_set_path_visible(self, is_visible: bool):
+    def editor_set_path_visible(self, is_visible: bool) -> None:
         """[Level Editor only] Show the shortest path in-game."""
         self._set_bool("setPathVisible", is_visible)
 
-    def editor_set_maze_data_enabled(self, is_enabled: bool):
+    def editor_set_maze_data_enabled(self, is_enabled: bool) -> None:
         """[Level Editor only] Show the shortest path in-game."""
         self._set_bool("setMazeDataEnabled", is_enabled)
 
@@ -3892,8 +3914,8 @@ class DialupPhone(EntityBase["DialupPhone"]):
             return self._in_dict[k].array_data.squeeze()
         return None
 
-    def dial_number(self, number: str):
-        """Dial the specified number. Afterwards you can retrieve the recorded dial tones with get_last_number_audio()
+    def dial_number(self, number: str) -> None:
+        """Dial the specified number. Afterwards you can retrieve the recorded dial tones with get_last_number_audio().
 
         Args:
             number (str): The number to dial.
@@ -3911,9 +3933,9 @@ class DialupPhone(EntityBase["DialupPhone"]):
 
 
 class RadarData(BaseEventData):
-    """Event data returned by a radar"""
+    """Event data returned by a radar."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         super().__init__(new_vals)
 
         self.angle: float = new_vals["angle"]
@@ -3945,7 +3967,7 @@ class SmartRadar(EntityBase["SmartRadar"]):
         """
         return [RadarData(d) for d in self._get_json("RadarData")["items"]]
 
-    def editor_set_radar_range(self, new_range: float):
+    def editor_set_radar_range(self, new_range: float) -> None:
         """[Level Editor only] Set the radar's max range to the specified value (in meters)."""
         self._set_float("setRadarRange", new_range)
 
@@ -3953,11 +3975,11 @@ class SmartRadar(EntityBase["SmartRadar"]):
 class SmartLiDAR(EntityBase["SmartLiDAR"]):
     """A LiDAR sensor that produces point-clouds in local space relative to the lidar head. Depending on the model, it can associate each scanned point with an object id."""
 
-    def editor_set_max_range(self, range: float):
+    def editor_set_max_range(self, range: float) -> None:
         """[Level Editor only] Set the max range of the lidar in meters."""
         self._set_float("setMaxRange", range)
 
-    def editor_set_has_semantic_sensor(self, is_enabled: bool):
+    def editor_set_has_semantic_sensor(self, is_enabled: bool) -> None:
         """[Level Editor only] Set whether the LiDAR has a semantic sensor to associate all scanned points with the object they belong to."""
         self._set_bool("setHasSemanticSensor", is_enabled)
 
@@ -3991,7 +4013,7 @@ class SmartLiDAR(EntityBase["SmartLiDAR"]):
 class ProximityData(BaseEventData):
     """Event data returned by a proximity sensor."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         super().__init__(new_vals)
 
         self.distance: float = new_vals["distance"]
@@ -4015,7 +4037,7 @@ class ProximitySensor(EntityBase["ProximitySensor"]):
         """
         return [ProximityData(d) for d in self._get_json("ProximityData")["items"]]
 
-    def editor_set_max_range(self, new_range: float):
+    def editor_set_max_range(self, new_range: float) -> None:
         """[Level Editor only] Set the proximity sensor's max range to the specified value (in meters)."""
         self._set_float("setMaxRange", new_range)
 
@@ -4025,7 +4047,7 @@ class ProximitySensor(EntityBase["ProximitySensor"]):
 class MovementEvent(BaseEventData):
     """Event data returned by a motion detector."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         super().__init__(new_vals)
 
         self.movement_amount: float = new_vals["movementAmount"]
@@ -4035,14 +4057,14 @@ class MovementEvent(BaseEventData):
 class MotionDetector(EntityBase["MotionDetector"]):
     """Simple motion detector sensor that fires an event whenever an object in its range moves."""
 
-    def editor_set_max_range(self, new_range: float):
+    def editor_set_max_range(self, new_range: float) -> None:
         """[Level Editor only] Set the motion detector's max range to the specified value (in meters)."""
         self._set_float("setMaxRange", new_range)
 
     def on_movement(
         self,
         handler: Callable[["MotionDetector", float, MovementEvent], None],
-    ):
+    ) -> None:
         """Event called when something moves within the motion detectors range.
 
         Args:
@@ -4062,7 +4084,7 @@ class MotionDetector(EntityBase["MotionDetector"]):
                 pass #do nothing but wait for event
         """
 
-        def wrapper(sender: MotionDetector, gametime: float, nparr: NPArray):
+        def wrapper(sender: MotionDetector, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             coll = None
             try:
@@ -4079,7 +4101,7 @@ class MotionDetector(EntityBase["MotionDetector"]):
 class SatelliteData(BaseEventData):
     """Data returned by a satellite."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         super().__init__(new_vals)
 
         self.world_location: Vector3 = Vector3(_parse_vector(new_vals["worldLocation"]))
@@ -4129,7 +4151,7 @@ class GeigerCounter(EntityBase["GeigerCounter"]):
 class Elevator(EntityBase["Elevator"]):
     """A stationary elevator that can dynamically reach different heights."""
 
-    def set_target_height(self, height: float):
+    def set_target_height(self, height: float) -> None:
         """Set the target height in meters."""
         self._set_float("setTargetHeight", height)
 
@@ -4138,14 +4160,14 @@ class Elevator(EntityBase["Elevator"]):
         return self._get_float("CurrentHeight")
 
     def get_state(self) -> ElevatorState:
-        """Get the current state of the elevator (Idle, Upwards, Downwards)"""
+        """Get the current state of the elevator (Idle, Upwards, Downwards)."""
         return ElevatorState(self._get_string("State"))
 
 
 class PusherRobot(EntityBase["PusherRobot"]):
     """A simple 1D extendible robot that can push objects away in front of it."""
 
-    def set_target_length(self, length: float):
+    def set_target_length(self, length: float) -> None:
         """Extend or retract the extension tip of the robot to the specified length and push out any objects in front of it.
 
         Args:
@@ -4180,7 +4202,7 @@ class PusherRobot(EntityBase["PusherRobot"]):
 class PullerRobot(EntityBase["PullerRobot"]):
     """A simple 1D pulling robot that can pull objects close with a hook-shot."""
 
-    def set_pulling(self, is_enabled: bool):
+    def set_pulling(self, is_enabled: bool) -> None:
         """Enable to pull any object on the line in front of the puller robot close towards it. Disable to stop pulling.
 
         Args:
@@ -4192,7 +4214,7 @@ class PullerRobot(EntityBase["PullerRobot"]):
         """
         self._set_bool("setPulling", is_enabled)
 
-    def editor_set_range(self, max_range: float = 15.0):
+    def editor_set_range(self, max_range: float = 15.0) -> None:
         """[Level Editor Only] Set the max range (in meters) of this puller robot.
 
         Args:
@@ -4204,7 +4226,7 @@ class PullerRobot(EntityBase["PullerRobot"]):
 class LaunchPad(EntityBase["LaunchPad"]):
     """Launch any object on top of this launch pad."""
 
-    def launch(self, power: float):
+    def launch(self, power: float) -> None:
         """Launch any object on top of this launch pad with the specified power.
 
         Args:
@@ -4219,9 +4241,9 @@ class LaunchPad(EntityBase["LaunchPad"]):
 
 
 class RemoteExplosive(EntityBase["RemoteExplosive"]):
-    """An explosive device that can be triggered remotely"""
+    """An explosive device that can be triggered remotely."""
 
-    def detonate(self):
+    def detonate(self) -> None:
         """Detonate this device immediately.
 
         Example:
@@ -4233,7 +4255,7 @@ class RemoteExplosive(EntityBase["RemoteExplosive"]):
         """
         self._set_void("Detonate")
 
-    def set_countdown(self, seconds: float):
+    def set_countdown(self, seconds: float) -> None:
         """Set a countdown timer until the device detonates. Set to <= 0 to disarm.
 
         Args:
@@ -4258,7 +4280,7 @@ class RemoteExplosive(EntityBase["RemoteExplosive"]):
         """
         return self._get_float("Countdown")
 
-    def set_explosion_type(self, explosion_type: AmmunitionTypes):
+    def set_explosion_type(self, explosion_type: AmmunitionTypes) -> None:
         """Change the type of explosion this device causes.
 
         Args:
@@ -4266,7 +4288,7 @@ class RemoteExplosive(EntityBase["RemoteExplosive"]):
         """
         self._set_string("setExplosionType", str(explosion_type))
 
-    def editor_set_can_change_explosion_type(self, new_enabled: bool):
+    def editor_set_can_change_explosion_type(self, new_enabled: bool) -> None:
         """[Level Editor Only] Set wether the player can change the explosion type of this device or not."""
         self._set_bool("SetCanChangeExplosionType", new_enabled)
 
@@ -4289,7 +4311,7 @@ class RemoteExplosive(EntityBase["RemoteExplosive"]):
 class ArcadeMachine(EntityBase["ArcadeMachine"]):
     """An old-school arcade game machine, offering a variety of games that can be played and automated with AI."""
 
-    def send_buttons(self, buttons: set[ArcadeButtons]):
+    def send_buttons(self, buttons: set[ArcadeButtons]) -> None:
         """Push and release all of the specified buttons at the same time.
 
         Example:
@@ -4300,7 +4322,7 @@ class ArcadeMachine(EntityBase["ArcadeMachine"]):
         """
         self._set_string("SendButtons", ",".join([str(btn) for btn in buttons]))
 
-    def set_axis(self, axis: ArcadeAxis, value: float):
+    def set_axis(self, axis: ArcadeAxis, value: float) -> None:
         """Set and hold the specified axis to the specified value (in [-1,1]).
 
         Example:
@@ -4313,7 +4335,7 @@ class ArcadeMachine(EntityBase["ArcadeMachine"]):
         """
         self._set_json("setAxis", {"axis": str(axis), "value": value}, True)
 
-    def restart(self):
+    def restart(self) -> None:
         """Restart the current arcade game.
 
         Example:
@@ -4374,15 +4396,15 @@ class ArcadeMachine(EntityBase["ArcadeMachine"]):
         """
         return self._get_bool("Done")
 
-    def editor_set_frame_grabber_enabled(self, is_enabled: bool):
+    def editor_set_frame_grabber_enabled(self, is_enabled: bool) -> None:
         """[Level Editor Only] Enable or disable the frame grabber on this arcade machine."""
         self._set_bool("setFrameGrabberEnabled", is_enabled)
 
-    def editor_set_state_dict_enabled(self, is_enabled: bool):
+    def editor_set_state_dict_enabled(self, is_enabled: bool) -> None:
         """[Level Editor Only] Enable or disable the state dictionary on this arcade machine."""
         self._set_bool("setStateDictEnabled", is_enabled)
 
-    def editor_set_game(self, game_name: ArcadeGames):
+    def editor_set_game(self, game_name: ArcadeGames) -> None:
         """[Level Editor Only] Load the specified game into this arcade machine.
 
         Example:
@@ -4408,7 +4430,7 @@ class PushButton(EntityBase["PushButton"]):
         """
         return self._get_float("LastPress")
 
-    def press(self):
+    def press(self) -> None:
         """Immediately press this button one time.
 
         Example:
@@ -4417,7 +4439,7 @@ class PushButton(EntityBase["PushButton"]):
         """
         self._set_void("Press")
 
-    def on_press(self, handler: Callable[["PushButton", float], None]):
+    def on_press(self, handler: Callable[["PushButton", float], None]) -> None:
         """Event called when this button is pressed.
 
         Args:
@@ -4434,7 +4456,7 @@ class PushButton(EntityBase["PushButton"]):
                 sleep(0.1)
         """
 
-        def wrapper(sender: PushButton, gametime: float, nparr: NPArray):
+        def wrapper(sender: PushButton, gametime: float, nparr: NPArray) -> None:
             handler(sender, gametime)
 
         self._add_event_listener("_eventOnPress", wrapper)
@@ -4460,7 +4482,7 @@ class ToggleSwitch(EntityBase["ToggleSwitch"]):
         """
         return self._get_float("LastSwitch")
 
-    def toggle(self):
+    def toggle(self) -> None:
         """Immediately toggle this switch.
 
         Example:
@@ -4485,7 +4507,7 @@ class ToggleSwitch(EntityBase["ToggleSwitch"]):
         """
         return self._get_bool("IsSwitchedOn")
 
-    def on_toggle(self, handler: Callable[["ToggleSwitch", float, bool], None]):
+    def on_toggle(self, handler: Callable[["ToggleSwitch", float, bool], None]) -> None:
         """Event called when the state of this switch changes.
 
         Args:
@@ -4502,7 +4524,7 @@ class ToggleSwitch(EntityBase["ToggleSwitch"]):
                 sleep(0.1)
         """
 
-        def wrapper(sender: ToggleSwitch, gametime: float, nparr: NPArray):
+        def wrapper(sender: ToggleSwitch, gametime: float, nparr: NPArray) -> None:
             if nparr.array_data.size > 0:
                 is_on = bool(nparr.array_data[0][0][0] > 0)
                 handler(sender, gametime, is_on)
@@ -4511,7 +4533,7 @@ class ToggleSwitch(EntityBase["ToggleSwitch"]):
 
 
 class Slider(EntityBase["Slider"]):
-    """A slider that can be set to a value between 0 and 1"""
+    """A slider that can be set to a value between 0 and 1."""
 
     def get_current_value(self) -> float:
         """Get the current value of the slider in [0...1].
@@ -4522,7 +4544,7 @@ class Slider(EntityBase["Slider"]):
         """
         return self._get_float("CurrentValue")
 
-    def set_value(self, new_value: float):
+    def set_value(self, new_value: float) -> None:
         """Set the value of the slider in [0...1].
 
         Example:
@@ -4531,7 +4553,7 @@ class Slider(EntityBase["Slider"]):
         """
         self._set_float("setValue", new_value)
 
-    def on_changed(self, handler: Callable[["Slider", float, float], None]):
+    def on_changed(self, handler: Callable[["Slider", float, float], None]) -> None:
         """Event called when the value of this slider has changed.
 
         Args:
@@ -4548,7 +4570,7 @@ class Slider(EntityBase["Slider"]):
                 sleep(0.1)
         """
 
-        def wrapper(sender: Slider, gametime: float, nparr: NPArray):
+        def wrapper(sender: Slider, gametime: float, nparr: NPArray) -> None:
             if nparr.array_data.size > 0:
                 new_val = float(nparr.array_data[0][0][0])
                 handler(sender, gametime, new_val)
@@ -4559,7 +4581,7 @@ class Slider(EntityBase["Slider"]):
 class InputBox(EntityBase["InputBox"]):
     """A box where the player can enter short text values."""
 
-    def set_text(self, new_text: str):
+    def set_text(self, new_text: str) -> None:
         """Sets the current text. Maximum length is 32 characters.
 
         Args:
@@ -4587,7 +4609,7 @@ class InputBox(EntityBase["InputBox"]):
         """
         return self._get_string("Text")
 
-    def on_changed(self, handler: Callable[["InputBox", float, str], None]):
+    def on_changed(self, handler: Callable[["InputBox", float, str], None]) -> None:
         """Event called when the text for this input box was changed and committed.
 
         Args:
@@ -4604,7 +4626,7 @@ class InputBox(EntityBase["InputBox"]):
                 sleep(0.1)
         """
 
-        def wrapper(sender: InputBox, gametime: float, nparr: NPArray):
+        def wrapper(sender: InputBox, gametime: float, nparr: NPArray) -> None:
             if nparr.array_data.size > 0:
                 new_text = (
                     nparr.array_data.squeeze()
@@ -4616,7 +4638,7 @@ class InputBox(EntityBase["InputBox"]):
 
         self._add_event_listener("_eventOnChanged", wrapper)
 
-    def editor_set_hint_text(self, new_text: str):
+    def editor_set_hint_text(self, new_text: str) -> None:
         """[Level Editor Only] Change the initial hint text display in the input box."""
         self._set_string("SetHintText", new_text)
 
@@ -4628,7 +4650,7 @@ class RadarTrap(EntityBase["RadarTrap"]):
         """Get the current speed (in m/s) of the closest moving object in front of the radar trap."""
         return self._get_float("Speed")
 
-    def take_photo(self):
+    def take_photo(self) -> None:
         """Take a photo of the closest moving object in front of the radar trap to issue a warning."""
         self._set_void("TakePhoto")
 
@@ -4636,7 +4658,7 @@ class RadarTrap(EntityBase["RadarTrap"]):
 class TrafficLight(EntityBase["TrafficLight"]):
     """A programmable traffic light."""
 
-    def set_state(self, new_state: TrafficLightStates):
+    def set_state(self, new_state: TrafficLightStates) -> None:
         """Set and change the current state of the traffic light."""
         self._set_string("setState", str(new_state))
 
@@ -4649,27 +4671,27 @@ class VacuumRobot(EntityBase["VacuumRobot"]):
     """An autonomous vacuum robot."""
 
     def get_grid_map(self) -> np.ndarray:
-        """Get a 7x7 grid based map around the robot's current position and orientation that indicates obstacles and traversable cells. Each grid cell corresponds to 0.1m x 0.1m"""
+        """Get a 7x7 grid based map around the robot's current position and orientation that indicates obstacles and traversable cells. Each grid cell corresponds to 0.1m x 0.1m."""
         return self._get_array_raw("GridMap", [7, 7, 1])
 
     def get_location(self) -> Vector3:
-        """Get the robots own location in XYZ in world space"""
+        """Get the robots own location in XYZ in world space."""
         return self._get_vector3d("Location")
 
     def get_orientation(self) -> float:
-        """Get the robots own yaw orientation in world space"""
+        """Get the robots own yaw orientation in world space."""
         return self._get_float("Orientation")
 
     def get_collision_events(self) -> list["CollisionEvent"]:
-        """Get all collision events that happened within the last 5 seconds"""
+        """Get all collision events that happened within the last 5 seconds."""
         return [CollisionEvent(d) for d in self._get_json("Collisions")["items"]]
 
-    def set_left_wheel_power(self, power: float):
-        """Set the relative power of the left wheel in [-1...1]"""
+    def set_left_wheel_power(self, power: float) -> None:
+        """Set the relative power of the left wheel in [-1...1]."""
         self._set_float("LeftWheelPower", power)
 
-    def set_right_wheel_power(self, power: float):
-        """Set the relative power of the right wheel in [-1...1]"""
+    def set_right_wheel_power(self, power: float) -> None:
+        """Set the relative power of the right wheel in [-1...1]."""
         self._set_float("RightWheelPower", power)
 
 
@@ -4677,18 +4699,18 @@ class ColorCubePuzzle(EntityBase["ColorCubePuzzle"]):
     """Classical puzzle of twisting a cube with 9 sub-faces such that each of the 6 sides consist of one solid color only."""
 
     def get_state(self) -> np.ndarray:
-        """Get the state of the cube as 6 slices (Y[up],-Y[down],X[right],-X[left],Z[face],-Z[back]) of 3x3 sub-faces with color ids from 0 to 5"""
+        """Get the state of the cube as 6 slices (Y[up],-Y[down],X[right],-X[left],Z[face],-Z[back]) of 3x3 sub-faces with color ids from 0 to 5."""
         return self._get_array_raw("State", [3, 3, 6])
 
-    def twist(self, move: str):
-        """Twist the cube with the specified single move. https://www.speedsolving.com/wiki/index.php?title=NxNxN_Notation https://hobbylark.com/puzzles/Rubik-Cube-Algorithms"""
+    def twist(self, move: str) -> None:
+        """Twist the cube with the specified single move. https://www.speedsolving.com/wiki/index.php?title=NxNxN_Notation https://hobbylark.com/puzzles/Rubik-Cube-Algorithms."""
         self._set_string("Twist", move)
 
 
 class TriggerEvent(BaseEventData):
-    """Event data returned by a TriggerZone"""
+    """Event data returned by a TriggerZone."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         super().__init__(new_vals)
 
         self.begin_overlap: bool = bool(new_vals["bIsBeginOverlap"])
@@ -4716,7 +4738,7 @@ class TriggerZone(EntityBase["TriggerZone"]):
     def on_triggered(
         self,
         handler: Callable[["TriggerZone", float, TriggerEvent], None],
-    ):
+    ) -> None:
         """Event called when something enters / overlaps or exits this zone.
 
         Args:
@@ -4739,7 +4761,7 @@ class TriggerZone(EntityBase["TriggerZone"]):
                 pass #do nothing but wait for event
         """
 
-        def wrapper(sender: TriggerZone, gametime: float, nparr: NPArray):
+        def wrapper(sender: TriggerZone, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             coll = None
             try:
@@ -4754,9 +4776,9 @@ class TriggerZone(EntityBase["TriggerZone"]):
 
 
 class CollisionEvent(BaseEventData):
-    """Event data returned by a SmartWall"""
+    """Event data returned by a SmartWall."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         super().__init__(new_vals)
 
         self.normal_impulse: Vector3 = Vector3(_parse_vector(new_vals["normalImpulse"]))
@@ -4791,7 +4813,7 @@ class SmartWall(EntityBase["SmartWall"]):
     def on_collision(
         self,
         handler: Callable[["SmartWall", float, CollisionEvent], None],
-    ):
+    ) -> None:
         """Event called when something collides with this wall.
 
         Args:
@@ -4813,7 +4835,7 @@ class SmartWall(EntityBase["SmartWall"]):
         # wrap and dispatch event
         import json
 
-        def wrapper(sender: SmartWall, gametime: float, nparr: NPArray):
+        def wrapper(sender: SmartWall, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             coll = None
             try:
@@ -4826,11 +4848,11 @@ class SmartWall(EntityBase["SmartWall"]):
 
         self._add_event_listener("_eventOnCollision", wrapper)
 
-    def editor_set_can_read_local_coll(self, enabled: bool):
+    def editor_set_can_read_local_coll(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable the reading of local impact coordinates on this device."""
         self._set_bool("setCanReadLocalColl", enabled)
 
-    def editor_set_can_read_world_coll(self, enabled: bool):
+    def editor_set_can_read_world_coll(self, enabled: bool) -> None:
         """[Level Editor only] Enable or disable the reading of world-space impact coordinates on this device."""
         self._set_bool("setCanReadWorldColl", enabled)
 
@@ -4863,7 +4885,7 @@ class SmartWall(EntityBase["SmartWall"]):
 class HumanoidRobot(EntityBase["HumanoidRobot"]):
     """A humanoid robot able to walk around the world and manipulate physical objects."""
 
-    def set_walking(self, yaw_angle: float, speed=1.0):
+    def set_walking(self, yaw_angle: float, speed=1.0) -> None:
         """Set the walking speed and direction of the robot.
 
         Args:
@@ -4896,7 +4918,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         return self._get_float("Orientation")
 
-    def jump(self):
+    def jump(self) -> None:
         """Make the robot jump up. Can double jump.
 
         Example:
@@ -4908,7 +4930,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_void("Jump")
 
-    def set_crouching(self, is_crouching: bool):
+    def set_crouching(self, is_crouching: bool) -> None:
         """Toggle crouching on or off. Can also walk while crouching.
 
         Args:
@@ -4924,7 +4946,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_bool("setCrouching", is_crouching)
 
-    def set_dancing(self, is_dancing: bool):
+    def set_dancing(self, is_dancing: bool) -> None:
         """Toggle dancing on or off. Cannot walk while dancing.
 
         Args:
@@ -4939,7 +4961,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_bool("setDancing", is_dancing)
 
-    def punch(self):
+    def punch(self) -> None:
         """Punch any object directly in front of the robot.
 
         Example:
@@ -4949,7 +4971,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_void("Punch")
 
-    def kick(self):
+    def kick(self) -> None:
         """Kick any object directly in front of the robot.
 
         Example:
@@ -4959,7 +4981,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_void("Kick")
 
-    def pickup(self):
+    def pickup(self) -> None:
         """Pickup an object directly in front of the robot. Not all objects can be picked up. Obviously.
 
         Example:
@@ -4972,7 +4994,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_void("Pickup")
 
-    def release(self):
+    def release(self) -> None:
         """Release any object the robot is currently carrying around.
 
         Example:
@@ -5024,15 +5046,15 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         return self._get_bool("IsBlocked")
 
-    def use(self):
+    def use(self) -> None:
         """Use / interact with the closest object in front of / in range of this humanoid robot. Interaction details depend on the target object and the current level."""
         self._set_void("Use")
 
-    def fire(self):
+    def fire(self) -> None:
         """If this robot has a weapon equipped or is interacting with a stationary weapon this command will trigger a single shot."""
         self._set_void("Fire")
 
-    def editor_set_can_carry(self, can_carry: bool):
+    def editor_set_can_carry(self, can_carry: bool) -> None:
         """[Level Editor Only] Enable or disable carrying for this robot.
 
         Args:
@@ -5040,7 +5062,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """
         self._set_bool("setCanCarry", can_carry)
 
-    def editor_set_equipped_weapon(self, new_weapon: Firearms):
+    def editor_set_equipped_weapon(self, new_weapon: Firearms) -> None:
         """[Level Editor Only] Change the currently equipped weapon of this robot.
 
         Args:
@@ -5052,7 +5074,7 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """Get the current health of this robot."""
         return self._get_float("Health")
 
-    def editor_set_health(self, new_health: float):
+    def editor_set_health(self, new_health: float) -> None:
         """[Level Editor Only] Change the health of this robot."""
         self._set_float("SetHealth", new_health)
 
@@ -5060,22 +5082,22 @@ class HumanoidRobot(EntityBase["HumanoidRobot"]):
         """Get the remaining ammunition count for the currently equipped weapon."""
         return self._get_int("Ammo")
 
-    def editor_set_ammo(self, new_ammo: int):
+    def editor_set_ammo(self, new_ammo: int) -> None:
         """[Level Editor Only] Change the available ammo for the currently equipped weapon."""
         self._set_int("SetHealth", new_ammo)
 
-    def equip_cosmetics(self, cosmetic_item: CosmeticItems):
+    def equip_cosmetics(self, cosmetic_item: CosmeticItems) -> None:
         """Equip the specified cosmetic item. If it is already equipped, un-equip it."""
         self._set_string("EquipCosmetics", str(cosmetic_item))
 
 
 class Swapper(EntityBase["Swapper"]):
-    """A machine with n slots can quickly swap objects on two arbitrary slots and return information about every object on its slots"""
+    """A machine with n slots can quickly swap objects on two arbitrary slots and return information about every object on its slots."""
 
-    def editor_set_num_slots(self, num_slots: int):
+    def editor_set_num_slots(self, num_slots: int) -> None:
         pass
 
-    def swap(self, i: int, j: int):
+    def swap(self, i: int, j: int) -> None:
         pass
 
     def get_tags(self) -> tuple[str]:
@@ -5084,10 +5106,10 @@ class Swapper(EntityBase["Swapper"]):
     def get_weights(self):
         return self._get_array_raw("Weights")
 
-    def attach(self):
+    def attach(self) -> None:
         self._set_void("Attach")
 
-    def release(self):
+    def release(self) -> None:
         self._set_void("Release")
 
 
@@ -5127,7 +5149,7 @@ class MessageSniffer(EntityBase["MessageSniffer"]):
         await_receive()
         return self._get_string("DecryptedText")
 
-    def editor_set_hidden_message(self, msg: str, substitution_key: int):
+    def editor_set_hidden_message(self, msg: str, substitution_key: int) -> None:
         """[Level Editor only] Set the hidden message and encrypt it with the specified substitution key.
 
         Args:
@@ -5140,7 +5162,7 @@ class MessageSniffer(EntityBase["MessageSniffer"]):
 class SniperRifle(EntityBase["SniperRifle"]):
     """Sniper rifle with an smart scope, targeting system and smart tracer bullet. Uses realistic G7 ballistics."""
 
-    def fire(self):
+    def fire(self) -> None:
         """Fire a single shot in the direction you are currently aiming. Has about 2 seconds reload time.
 
         Example:
@@ -5152,8 +5174,8 @@ class SniperRifle(EntityBase["SniperRifle"]):
         """
         self._set_void("Fire")
 
-    def set_zoom(self, zoom_factor: float):
-        """Set the zoom factor of the sniper rifles scope in [1,25]
+    def set_zoom(self, zoom_factor: float) -> None:
+        """Set the zoom factor of the sniper rifles scope in [1,25].
 
         Args:
             zoom_factor (float): Zoom factor from 1x to 25x
@@ -5192,7 +5214,7 @@ class SniperRifle(EntityBase["SniperRifle"]):
     def on_bullet_hit(
         self,
         handler: Callable[["SniperRifle", float, CollisionEvent], None],
-    ):
+    ) -> None:
         """Event called when this sniper rifle hits something.
 
         Args:
@@ -5209,7 +5231,7 @@ class SniperRifle(EntityBase["SniperRifle"]):
         # wrap and dispatch event
         import json
 
-        def wrapper(sender: SniperRifle, gametime: float, nparr: NPArray):
+        def wrapper(sender: SniperRifle, gametime: float, nparr: NPArray) -> None:
             raw = nparr.array_data.squeeze().tobytes().decode("utf-8")
             coll = None
             try:
@@ -5222,7 +5244,7 @@ class SniperRifle(EntityBase["SniperRifle"]):
 
         self._add_event_listener("_eventOnBulletHit", wrapper)
 
-    def editor_set_reload_time(self, new_reload_time: float):
+    def editor_set_reload_time(self, new_reload_time: float) -> None:
         """[Level Editor Only] Adjust the reload time (cooldown) of this SniperRifle after every shot.
 
         Args:
@@ -5232,9 +5254,9 @@ class SniperRifle(EntityBase["SniperRifle"]):
 
 
 class Rocket(EntityBase["Rocket"]):
-    """A steerable rocket with a gimbaled thruster"""
+    """A steerable rocket with a gimbaled thruster."""
 
-    def set_thruster_rotation(self, rotation: Rotator3, *args: float):
+    def set_thruster_rotation(self, rotation: Rotator3, *args: float) -> None:
         """Set the rotation of the gimbaled thruster to the specified target in degrees. Roll is ignored.
 
         Args:
@@ -5242,7 +5264,7 @@ class Rocket(EntityBase["Rocket"]):
         """
         self._set_vector3d("setThrusterRotation", rotation, add_args=args)
 
-    def set_thruster_force(self, force: float):
+    def set_thruster_force(self, force: float) -> None:
         """Set the continuous force of the thruster to the specified value in [0,1000].
 
         Example:
@@ -5258,14 +5280,14 @@ class Rocket(EntityBase["Rocket"]):
         return self._get_vector3d("Location")
 
     def get_rotation(self) -> Rotator3:
-        """Get the rocket's rotation vector in roll,pitch,yaw in degrees in world space"""
+        """Get the rocket's rotation vector in roll,pitch,yaw in degrees in world space."""
         return self._get_rotator3d("Rotation")
 
     def get_velocity(self) -> Vector3:
-        """Get rocket's current velocity vector in meters per second"""
+        """Get rocket's current velocity vector in meters per second."""
         return self._get_vector3d("Velocity")
 
-    def detonate(self):
+    def detonate(self) -> None:
         """Detonate / self-destruct the rocket immediately."""
         self._set_void("Detonate")
 
@@ -5273,19 +5295,19 @@ class Rocket(EntityBase["Rocket"]):
 class Quadcopter(EntityBase["Quadcopter"]):
     """A quadcopter drone with immediate thrust control."""
 
-    def set_thruster_force_fl(self, new_thrust: float):
+    def set_thruster_force_fl(self, new_thrust: float) -> None:
         """Set the thrust of the front left rotor."""
         self._set_float("SetThrusterForceFL", new_thrust)
 
-    def set_thruster_force_fr(self, new_thrust: float):
+    def set_thruster_force_fr(self, new_thrust: float) -> None:
         """Set the thrust of the front right rotor."""
         self._set_float("SetThrusterForceFR", new_thrust)
 
-    def set_thruster_force_bl(self, new_thrust: float):
+    def set_thruster_force_bl(self, new_thrust: float) -> None:
         """Set the thrust of the back left rotor."""
         self._set_float("SetThrusterForceBL", new_thrust)
 
-    def set_thruster_force_br(self, new_thrust: float):
+    def set_thruster_force_br(self, new_thrust: float) -> None:
         """Set the thrust of the back right rotor."""
         self._set_float("SetThrusterForceBR", new_thrust)
 
@@ -5294,11 +5316,11 @@ class Quadcopter(EntityBase["Quadcopter"]):
         return self._get_float("GroundDistance")
 
     def get_rotation(self) -> Rotator3:
-        """Get the drone's rotation vector in roll,pitch,yaw in degrees in world space"""
+        """Get the drone's rotation vector in roll,pitch,yaw in degrees in world space."""
         return self._get_rotator3d("Rotation")
 
     def get_velocity(self) -> Vector3:
-        """Get drones's current velocity vector in meters per second"""
+        """Get drones's current velocity vector in meters per second."""
         return self._get_vector3d("Velocity")
 
     # other sensors or interaction methods? camera (gimbaled / de-rotated), pickup / release, drop grenade
@@ -5307,7 +5329,7 @@ class Quadcopter(EntityBase["Quadcopter"]):
 class PlayingCard(EntityBase["PlayingCard"]):
     """A single playing card from a standard 52-card deck."""
 
-    def set_card(self, card_id: int | tuple[CardRank, CardSuit]):
+    def set_card(self, card_id: int | tuple[CardRank, CardSuit]) -> None:
         """Set the card currently visible on this playing card. Either as linear card index or as rank/suit tuple.
 
         Args:
@@ -5327,7 +5349,8 @@ class PlayingCard(EntityBase["PlayingCard"]):
             rank, suit = card_id
             lin_idx = (int(rank) - 2) + 13 * int(suit)
         else:
-            raise Exception("card_id must be integer or tuple of CardRank and CardSuit")
+            msg = "card_id must be integer or tuple of CardRank and CardSuit"
+            raise Exception(msg)
         self._set_int("SetCard", lin_idx)
 
     def get_current_card(self) -> tuple[CardRank, CardSuit]:
@@ -5341,11 +5364,11 @@ class PlayingCard(EntityBase["PlayingCard"]):
         cardidx = self._get_int("CurrentCard")
         return (CardRank(cardidx % 13 + 2), CardSuit(cardidx // 13))
 
-    def editor_set_has_card_getter(self, is_enabled: bool):
+    def editor_set_has_card_getter(self, is_enabled: bool) -> None:
         """[Level Editor Only] Allow or prevent the player from reading this cards value."""
         self._set_bool("SetHasCardGetter", is_enabled)
 
-    def editor_set_has_card_setter(self, is_enabled: bool):
+    def editor_set_has_card_setter(self, is_enabled: bool) -> None:
         """[Level Editor Only] Allow or prevent the player from changing this cards value."""
         self._set_bool("SetHasCardSetter", is_enabled)
 
@@ -5364,7 +5387,7 @@ class PlayingCard(EntityBase["PlayingCard"]):
 class Dice(EntityBase["Dice"]):
     """Class for all dice: D4, D6, D8, D10, D12, D20."""
 
-    def roll(self):
+    def roll(self) -> None:
         """Roll this dice. Async function. Roll result will be returned in on_landed event handler."""
         self._set_void("Roll")
 
@@ -5376,19 +5399,17 @@ class Dice(EntityBase["Dice"]):
         """Returns True if the dice is currently rolling, else False."""
         return self._get_bool("IsRolling")
 
-    def on_landed(self, handler: Callable[["Dice", float, int], None]):
+    def on_landed(self, handler: Callable[["Dice", float, int], None]) -> None:
         """Event handler, called once the dice lands and returns a new face value. Also called on physical interaction without explicitly calling roll() beforehand.
 
         Args:
             handler (Callable[[Dice, float, int],None]): Handler function taking the current dice, gametime and face value as parameters.
         """
 
-        def wrapper(sender: Dice, gametime: float, nparr: NPArray):
+        def wrapper(sender: Dice, gametime: float, nparr: NPArray) -> None:
             val = -1
-            try:
+            with contextlib.suppress(Exception):
                 val = int(nparr.array_data[0][0][0])
-            except:
-                pass
             if val >= 0:
                 handler(sender, gametime, val)
 
@@ -5402,18 +5423,18 @@ class Dice(EntityBase["Dice"]):
 class DiceRoller(EntityBase["DiceRoller"]):
     """Dice rolling tower that can roll an (almost) arbitrary number of dice."""
 
-    def roll_dice(self, roll_string: str):
+    def roll_dice(self, roll_string: str) -> None:
         """Roll all the dice specified in the roll string at once. Format is "xDy+nDm...", e.g. "2D6" or "1D4 + 3d20" or "2d12 + 1D6 + 3d8". Async function. Roll result will be returned in on_completed event handler."""
         self._set_string("RollDice", roll_string)
 
-    def on_completed(self, handler: Callable[["DiceRoller", float, list[int]], None]):
+    def on_completed(self, handler: Callable[["DiceRoller", float, list[int]], None]) -> None:
         """Event handler, called once all the rolled dice have landed and returns a list of dice face values sorted by dice type in ascending order (D4 to D20).
 
         Args:
             handler (Callable[[DiceRoller, float, List[int]],None]): Handler function taking the current DiceRoller, gametime and list of face values as parameters.
         """
 
-        def wrapper(sender: DiceRoller, gametime: float, nparr: NPArray):
+        def wrapper(sender: DiceRoller, gametime: float, nparr: NPArray) -> None:
             vals = [int(val) for val in nparr.array_data.flatten()]
             if vals:
                 handler(sender, gametime, vals)
@@ -5426,22 +5447,22 @@ class MiniatureFigure(EntityBase["MiniatureFigure"]):
 
     # idea: show custom gui for figurine created from level editor script
 
-    def editor_set_img(self, img: SpawnableImages):
+    def editor_set_img(self, img: SpawnableImages) -> None:
         """Set a standee image for this figurine."""
         self._set_string("SetImg", str(img))
 
-    def editor_set_mesh(self, mesh: SpawnableMeshes):
+    def editor_set_mesh(self, mesh: SpawnableMeshes) -> None:
         """Set a 3d mesh for this figurine."""
         self._set_string("SetMesh", str(mesh))
 
-    def perform(self, action: str, *args, **kwargs):
+    def perform(self, action: str, *args, **kwargs) -> None:
         """Perform the specified action with the specified named arguments."""
         if not action:
             return
         kwargs["PosArgsList"] = list(args)
         self._set_json(action, kwargs)
 
-    def editor_set_state(self, key: str, value: Any):
+    def editor_set_state(self, key: str, value: Any) -> None:
         """Set or update a state variable for this figurine. States starting with _ are not readable by the player.
 
         Args:
@@ -5461,19 +5482,19 @@ class MiniatureFigure(EntityBase["MiniatureFigure"]):
         return ""
 
     def get_state_variables(self) -> list[str]:
-        """Retrieve list of available state variables"""
+        """Retrieve list of available state variables."""
         all_dat = self._get_json("Data")
         return [k for k in list(all_dat.keys()) if not k.startswith("_")]
 
     def get_action_names(self) -> list[str]:
-        """Retrieve list of available actions this figurine can perform"""
+        """Retrieve list of available actions this figurine can perform."""
         return self._get_string("ActionNames").split(",")
 
 
 class AirliftCrane(EntityBase["AirliftCrane"]):
     """A crane hook attached to a helicopter. Can lift up and put down objects anywhere quickly."""
 
-    def editor_set_shake_intensity(self, intensity: float = 0.2):
+    def editor_set_shake_intensity(self, intensity: float = 0.2) -> None:
         """[Level Editor Only] Set the relative shake intensity of the crane hook.
 
         Args:
@@ -5481,7 +5502,7 @@ class AirliftCrane(EntityBase["AirliftCrane"]):
         """
         self._set_float("setShakeIntensity", intensity)
 
-    def editor_set_size_limit(self, max_size: float = 5.0):
+    def editor_set_size_limit(self, max_size: float = 5.0) -> None:
         """[Level Editor Only] Set the maximum size of objects this airlift can carry. Diameter in meters.
 
         Args:
@@ -5489,11 +5510,11 @@ class AirliftCrane(EntityBase["AirliftCrane"]):
         """
         self._set_float("setSizeLimit", max_size)
 
-    def editor_set_can_carry_non_physics(self, is_enabled: bool):
+    def editor_set_can_carry_non_physics(self, is_enabled: bool) -> None:
         """[Level Editor Only] Enable or disable the possibility to carry around non physically simulated objects. Careful, this means the player can lift up anything."""
         self._set_bool("setCanCarryNonPhysics", is_enabled)
 
-    def set_target_location(self, loc: Vector3, *args: float):
+    def set_target_location(self, loc: Vector3, *args: float) -> None:
         """Set a new target location for the hook of the AirliftCrane (meters in world space).
 
         Args:
@@ -5510,7 +5531,7 @@ class AirliftCrane(EntityBase["AirliftCrane"]):
         """
         self._set_vector3d("setTargetLocation", loc, add_args=args)
 
-    def pickup(self):
+    def pickup(self) -> None:
         """Pickup an object currently on / near the hook. Maximum size this crane can pick up may be limited.
 
         Example:
@@ -5524,7 +5545,7 @@ class AirliftCrane(EntityBase["AirliftCrane"]):
         """
         self._set_void("Pickup")
 
-    def release(self):
+    def release(self) -> None:
         """Immediately release any object currently on the hook of the Airlift.
 
         Example:
@@ -5598,7 +5619,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         """
         return self._get_string("CurrentTime")
 
-    def set_is_running(self, is_enabled: bool):
+    def set_is_running(self, is_enabled: bool) -> None:
         """Stop or run the clock.
 
         Example:
@@ -5607,7 +5628,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         """
         self._set_bool("setIsRunning", is_enabled)
 
-    def set_use_gametime(self, is_enabled: bool):
+    def set_use_gametime(self, is_enabled: bool) -> None:
         """Use gametime (True) or realtime (False).
 
         Example:
@@ -5616,7 +5637,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         """
         self._set_bool("setUseGametime", is_enabled)
 
-    def set_alarm_time(self, alarm_time: float):
+    def set_alarm_time(self, alarm_time: float) -> None:
         """Sets the time when the alarm clock will trigger an alarm.
 
         Args:
@@ -5631,7 +5652,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         """
         self._set_float("setAlarmTime", alarm_time)
 
-    def set_current_time(self, new_time: float):
+    def set_current_time(self, new_time: float) -> None:
         """Sets the current time of the clock to the specified time (total hours from midnight).
 
         Args:
@@ -5648,7 +5669,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
         time.time
         self._set_float("setCurrentTime", new_time)
 
-    def on_alarm(self, handler: Callable[["AlarmClock", float], None]):
+    def on_alarm(self, handler: Callable[["AlarmClock", float], None]) -> None:
         """Event called when the set alarm time of this clock is hit. Handler takes AlarmClock and gametime as arguments.
 
         Args:
@@ -5663,7 +5684,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
             AlarmClock.first().on_alarm(on_alarm)
         """
 
-        def wrapper(sender: AlarmClock, gametime: float, nparr: NPArray):
+        def wrapper(sender: AlarmClock, gametime: float, nparr: NPArray) -> None:
             handler(sender, gametime)
 
         self._add_event_listener("_eventOnAlarm", wrapper)
@@ -5672,7 +5693,7 @@ class AlarmClock(EntityBase["AlarmClock"]):
 class SimplePhysicsCar(EntityBase["SimplePhysicsCar"]):
     """A car with 4 simple physically simulated wheels. Can only drive forwards and backwards, no steering."""
 
-    def apply_impulse(self, val: float):
+    def apply_impulse(self, val: float) -> None:
         """Apply the given forward impulse in m/s."""
         self._set_float("ApplyImpulse", val)
 
@@ -5680,7 +5701,7 @@ class SimplePhysicsCar(EntityBase["SimplePhysicsCar"]):
 class RaceCar(EntityBase["RaceCar"]):
     """A physically simulated wheeled race car."""
 
-    def set_throttle(self, val: float):
+    def set_throttle(self, val: float) -> None:
         """Set the relative throttle of the engine in [0,1] from no throttle to full throttle. Driving backwards requires a positive throttle and a reverse gear.
 
         Args:
@@ -5698,7 +5719,7 @@ class RaceCar(EntityBase["RaceCar"]):
         """
         self._set_float("setThrottle", val)
 
-    def set_steering(self, val: float):
+    def set_steering(self, val: float) -> None:
         """Set the relative steering wheel angle in [-1,1] from full left to full right.
 
         Args:
@@ -5716,7 +5737,7 @@ class RaceCar(EntityBase["RaceCar"]):
         """
         self._set_float("setSteering", val)
 
-    def set_brake(self, val: float):
+    def set_brake(self, val: float) -> None:
         """Set the relative brake intensity in [0,1] from no break to full break.
 
         Args:
@@ -5732,7 +5753,7 @@ class RaceCar(EntityBase["RaceCar"]):
         """
         self._set_float("setBrake", val)
 
-    def set_handbrake(self, is_enabled: bool):
+    def set_handbrake(self, is_enabled: bool) -> None:
         """Fully enable or disable the handbrake.
 
         Args:
@@ -5747,7 +5768,7 @@ class RaceCar(EntityBase["RaceCar"]):
         """
         self._set_bool("setHandbrake", is_enabled)
 
-    def set_lights(self, is_enabled: bool):
+    def set_lights(self, is_enabled: bool) -> None:
         """Turn the headlights and taillights on or off.
 
         Args:
@@ -5760,7 +5781,7 @@ class RaceCar(EntityBase["RaceCar"]):
         """
         self._set_bool("setLights", is_enabled)
 
-    def set_gear(self, val: int):
+    def set_gear(self, val: int) -> None:
         """Change gears to the specified target gear. Clutch transmission is automatic. Gear 0 is neutral, gears -1 and -2 are backwards and gears 1 to 6 are forwards.
 
         Args:
@@ -5778,7 +5799,7 @@ class RaceCar(EntityBase["RaceCar"]):
         """
         self._set_int("setGear", val)
 
-    def apply_boost(self):
+    def apply_boost(self) -> None:
         """Apply a short nitro speed boost in the car's forward direction. Costs a lot of fuel.
 
         Example:
@@ -5854,15 +5875,15 @@ class RaceCar(EntityBase["RaceCar"]):
         return self._get_float("Fuel")
 
     # editor functions
-    def editor_set_allow_boost(self, is_enabled: bool):
+    def editor_set_allow_boost(self, is_enabled: bool) -> None:
         """Allow or disallow players to apply the nitro booster."""
         self._set_float("setAllowBoost", is_enabled)
 
-    def editor_set_current_fuel(self, val: float):
+    def editor_set_current_fuel(self, val: float) -> None:
         """Change the current fuel level of the car."""
         self._set_float("setFuelLevel", val)
 
-    def editor_set_max_speed(self, val: float):
+    def editor_set_max_speed(self, val: float) -> None:
         """Limit the max speed of the car in m/s.
 
         Args:
@@ -5874,43 +5895,43 @@ class RaceCar(EntityBase["RaceCar"]):
 class PostProcessVolume(EntityBase["PostProcessVolume"]):
     """Level Editor only. A post-processing volume to change the look of a level."""
 
-    def editor_set_bounds(self, bounds: Vector3, *args: float):
+    def editor_set_bounds(self, bounds: Vector3, *args: float) -> None:
         """Set the bounds of this post process volume. Everything inside is impacted by the post process settings. Negative bounds mean unbounded volume to affect everything."""
         self._set_vector3d("setBounds", bounds, add_args=args)
 
-    def editor_set_blend_radius(self, radius):
+    def editor_set_blend_radius(self, radius) -> None:
         self._set_float("setBlendRadius", radius)
 
-    def editor_set_color_saturation(self, value: Vector3, *args: float):
+    def editor_set_color_saturation(self, value: Vector3, *args: float) -> None:
         self._set_vector3d("setColorSaturation", value, add_args=args)
 
-    def editor_set_color_contrast(self, value: Vector3, *args: float):
+    def editor_set_color_contrast(self, value: Vector3, *args: float) -> None:
         self._set_vector3d("setColorContrast", value, add_args=args)
 
-    def editor_set_color_gain(self, value: Vector3, *args: float):
+    def editor_set_color_gain(self, value: Vector3, *args: float) -> None:
         self._set_vector3d("setColorGain", value, add_args=args)
 
-    def editor_set_color_offset(self, value: Vector3, *args: float):
+    def editor_set_color_offset(self, value: Vector3, *args: float) -> None:
         self._set_vector3d("setColorOffset", value, add_args=args)
 
-    def editor_set_color_gamma(self, value: Vector3, *args: float):
+    def editor_set_color_gamma(self, value: Vector3, *args: float) -> None:
         self._set_vector3d("setColorGamma", value, add_args=args)
 
-    def editor_set_film_grain_intensity(self, value: float):
+    def editor_set_film_grain_intensity(self, value: float) -> None:
         self._set_float("setFilmGrainIntensity", value)
 
-    def editor_set_vignette_intensity(self, value: float):
+    def editor_set_vignette_intensity(self, value: float) -> None:
         self._set_float("setVignetteIntensity", value)
 
 
 class ExpressiveTextLabel(EntityBase["ExpressiveTextLabel"]):
     """A versatile text label that can take any captions."""
 
-    def set_text(self, new_text: str):
+    def set_text(self, new_text: str) -> None:
         """Set the text of this label. Supports expressive text markup."""
         self._set_string("setText", new_text)
 
-    def set_font_size(self, font_size: int):
+    def set_font_size(self, font_size: int) -> None:
         """Set the default font size for this label."""
         self._set_int("setFontSize", font_size)
 
@@ -5918,7 +5939,7 @@ class ExpressiveTextLabel(EntityBase["ExpressiveTextLabel"]):
 class AlarmSiren(EntityBase["AlarmSiren"]):
     """Alarm Siren with strong audio and visual feedback."""
 
-    def set_alarm_enabled(self, is_enabled: bool = True):
+    def set_alarm_enabled(self, is_enabled: bool = True) -> None:
         """Turn the alarm siren on or off.
 
         Args:

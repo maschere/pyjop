@@ -32,6 +32,7 @@ import skimage.transform
 import skimage.util
 
 builtins.print(".", end="")
+import contextlib
 import inspect
 from datetime import datetime
 from inspect import currentframe, getframeinfo
@@ -42,7 +43,7 @@ from pyjop.Vector import Rotator3, Vector3
 
 
 class NPArray:
-    """numpy array for transfer over tcp socket"""
+    """numpy array for transfer over tcp socket."""
 
     _MAGIC_BYTES: Final = b"Ihg\x1c"
     _NAME_LEN: Final = 128
@@ -65,10 +66,7 @@ class NPArray:
         w = int.from_bytes(msg_b[4:8], "little")
         h = int.from_bytes(msg_b[8:12], "little")
         c = int.from_bytes(msg_b[12:16], "little")
-        if msg_b[16] == 0:
-            dt = np.uint8
-        else:
-            dt = np.float32
+        dt = np.uint8 if msg_b[16] == 0 else np.float32
         name = str.strip(
             msg_b[NPArray._PRE_HEADER : NPArray._HEADER_SIZE].decode("ascii"),
         )
@@ -77,12 +75,11 @@ class NPArray:
             arr = np.ndarray(shape=(h, w, c), dtype=dt, buffer=msg_b)
         else:
             arr = np.zeros((1, 1, 1), dtype=dt)
-        nparr = NPArray(name, arr)
-        return nparr
+        return NPArray(name, arr)
 
     def pack_msg(self) -> bytearray:
         out = bytearray()
-        if self.array_data.dtype != np.uint8 and self.array_data.dtype != np.float32:
+        if self.array_data.dtype not in (np.uint8, np.float32):
             self.array_data = self.array_data.astype(np.float32)
 
         name = self.unique_name.ljust(NPArray._NAME_LEN, " ")[: NPArray._NAME_LEN]
@@ -129,10 +126,8 @@ class NPArray:
     def get_json_dict(self) -> dict[str, Any]:
         js = {}
         raw = self.array_data.squeeze().tobytes().decode("utf-8")
-        try:
+        with contextlib.suppress(Exception):
             js = json.loads(raw)
-        except:
-            pass
         return js
 
     def get_bool(self) -> bool:
@@ -168,6 +163,7 @@ def _stack_size(size: int = 2):
         frame = frame.f_back
         if not frame:
             return size
+    return None
 
 
 def is_non_spawnable(cls):
@@ -187,7 +183,7 @@ T = TypeVar("T")
 class BaseEventData:
     """Event data returned by several entities."""
 
-    def __init__(self, new_vals: "dict[str, Any]"):
+    def __init__(self, new_vals: "dict[str, Any]") -> None:
         self.at_time: float = new_vals["time"]
         """Simulation time in seconds when this event occurred"""
         self.entity_type: str = new_vals["entityType"]
@@ -210,12 +206,12 @@ class BaseEventData:
 class EntityBase(Generic[T]):
     """Base class for all entities in the SimEnv. Use Find or FindAll to get the entities you want to control and program them."""
 
-    _out_dict: dict[str, list[NPArray]] = dict()
-    _out_time_dict: dict[str, tuple[int, int]] = dict()
-    _in_time_dict: dict[str, tuple[int, int]] = dict()
-    _in_dict: dict[str, NPArray] = dict()
-    _entity_dict: dict[str, "EntityBase"] = dict()
-    _custom_classes: dict[str, type["EntityBase"]] = dict()
+    _out_dict: dict[str, list[NPArray]] = {}
+    _out_time_dict: dict[str, tuple[int, int]] = {}
+    _in_time_dict: dict[str, tuple[int, int]] = {}
+    _in_dict: dict[str, NPArray] = {}
+    _entity_dict: dict[str, "EntityBase"] = {}
+    _custom_classes: dict[str, type["EntityBase"]] = {}
     _BLANK_IMAGE: Final = np.zeros((64, 64, 3), dtype=np.uint8)
     _TIMEOUT: Final = 5
     last_receive_at = datetime.utcnow()
@@ -228,7 +224,7 @@ class EntityBase(Generic[T]):
     _event_queue: Queue[tuple[NPArray, Callable[[T, float, Any], None]]] = Queue()
 
     @staticmethod
-    def _set_out_data(k: str, arr: NPArray, append=False, max_appends=0):
+    def _set_out_data(k: str, arr: NPArray, append=False, max_appends=0) -> None:
         EntityBase.sendlock.acquire()
         arr.time_id = next(NPArray.time_id_it)
         needs_await = False
@@ -265,7 +261,7 @@ class EntityBase(Generic[T]):
                 EntityBase._out_time_dict[k] = (t1, 0)
 
     @staticmethod
-    def _sync_incoming_data(nparr: NPArray):
+    def _sync_incoming_data(nparr: NPArray) -> None:
         if nparr.unique_name.count(".") != 2:
             return
         # get identifiers
@@ -314,13 +310,13 @@ class EntityBase(Generic[T]):
             EntityBase._in_dict[nparr.unique_name] = nparr
 
     @staticmethod
-    def _clean_entity_dict():
+    def _clean_entity_dict() -> None:
         items = EntityBase._entity_dict.copy().items()
         EntityBase._entity_dict = {k: v for k, v in items if v.is_valid}
 
     @classmethod
     def find_all(cls, find_derived=False, suppress_warnings=False) -> list[T]:
-        """Get all entities of the current type. If find_derived=True, then all derived classes are found as well
+        """Get all entities of the current type. If find_derived=True, then all derived classes are found as well.
 
         Args:
             find_derived (bool, optional): True to find all derived classes as well, False otherwise. Defaults to False.
@@ -330,7 +326,7 @@ class EntityBase(Generic[T]):
             convs = ConveyorBelt.find_all(True) #list of all conveyor belts, large conveyor belts, turnable conveyor belts and railed conveyor belts.
         """
         all_ents = cls._find_all_internal(find_derived)
-        if len(all_ents) == 0 and suppress_warnings == False:
+        if len(all_ents) == 0 and suppress_warnings is False:
             EntityBase._log_debug_static(
                 f"Cannot find any entities of type '{cls.__name__}'",
                 (1, 1, 0),
@@ -359,7 +355,7 @@ class EntityBase(Generic[T]):
         """
         fullname = cls.__name__ + "." + entity_name
         EntityBase._log_line_number()
-        if fullname not in EntityBase._entity_dict and suppress_warnings == False:
+        if fullname not in EntityBase._entity_dict and suppress_warnings is False:
             EntityBase._log_debug_static(
                 f"Cannot find entity '{entity_name}'",
                 (1, 1, 0),
@@ -368,7 +364,7 @@ class EntityBase(Generic[T]):
         v = EntityBase._entity_dict[fullname]
         if isinstance(v, cls) and v.is_valid:
             return v
-        if suppress_warnings == False:
+        if suppress_warnings is False:
             EntityBase._log_debug_static(
                 f"Cannot find entity '{entity_name}' of type '{cls.__name__}'",
                 (1, 1, 0),
@@ -390,7 +386,7 @@ class EntityBase(Generic[T]):
         all = cls._find_all_internal(True)
         if len(all) > 0:
             return all[0]
-        if suppress_warnings == False:
+        if suppress_warnings is False:
             EntityBase._log_debug_static(
                 f"Cannot find any entities of type '{cls.__name__}'",
                 (1, 1, 0),
@@ -412,7 +408,7 @@ class EntityBase(Generic[T]):
         all = cls._find_all_internal(True)
         if len(all) > 0:
             return random.choice(all)
-        if suppress_warnings == False:
+        if suppress_warnings is False:
             EntityBase._log_debug_static(
                 f"Cannot find any entities of type '{cls.__name__}'",
                 (1, 1, 0),
@@ -421,25 +417,28 @@ class EntityBase(Generic[T]):
 
     def __init__(self, entity_name: str, **kwargs) -> None:
         if self.__class__ == EntityBase:
-            raise TypeError("Abstract class cannot be instantiated")
+            msg = "Abstract class cannot be instantiated"
+            raise TypeError(msg)
         self.__entity_name = entity_name
         fullname = self._build_name()
         if fullname in EntityBase._entity_dict:
-            raise SyntaxError(f"Please use EntityBase.find('{entity_name}')")
+            msg = f"Please use EntityBase.find('{entity_name}')"
+            raise SyntaxError(msg)
         if "synccall" not in kwargs or kwargs["synccall"] != "internal":
-            raise KeyError(f"entity '{entity_name}' does not exist in the SimEnv")
+            msg = f"entity '{entity_name}' does not exist in the SimEnv"
+            raise KeyError(msg)
 
         self.last_sync_utc = datetime.utcnow()
         EntityBase._entity_dict[fullname] = self
         self.event_handlers: dict[str, list[Callable[[T, float, NPArray], None]]] = (
-            dict()
+            {}
         )
 
-    def _post_API_call(self):
+    def _post_API_call(self) -> None:
         # stuff to do after each api call
         self._log_line_number()
 
-    def _check_get_rate(self, k: str):
+    def _check_get_rate(self, k: str) -> None:
         t0, c0 = 0, 0
         if k in EntityBase._in_time_dict:
             t0, c0 = EntityBase._in_time_dict[k]
@@ -469,22 +468,24 @@ class EntityBase(Generic[T]):
         event_name: str,
         handler: Callable[[T, float, NPArray], None],
         force_singleton=False,
-    ):
+    ) -> None:
         full_eventname = self._build_name(event_name)
         if force_singleton or full_eventname not in self.event_handlers:
             self.event_handlers[full_eventname] = [handler]
         else:
             self.event_handlers[full_eventname].append(handler)
 
-    def _clear_event_handlers(self, event_name: str):
+    def _clear_event_handlers(self, event_name: str) -> None:
         full_eventname = self._build_name(event_name)
         self.event_handlers[full_eventname] = []
 
     def _get_array_raw(
         self,
         prop_name: str,
-        shape: list[int] = [0, 0, 0],
+        shape: list[int] | None = None,
     ) -> np.ndarray:
+        if shape is None:
+            shape = [0, 0, 0]
         k = self._build_name(prop_name)
         if k in self._in_dict:
             self._check_get_rate(k)
@@ -590,7 +591,7 @@ class EntityBase(Generic[T]):
             EntityBase._log_debug_static(f"Sensor unavailable: {k}", Colors.Yellow)
         return {}
 
-    def _set_void(self, prop_name: str, append: bool = False):
+    def _set_void(self, prop_name: str, append: bool = False) -> None:
         k = self._build_name(prop_name)
         nparr = NPArray(k, np.asarray([], dtype=np.float32))
         self._set_out_data(k, nparr, append)
@@ -712,7 +713,7 @@ class EntityBase(Generic[T]):
 
     @property
     def is_valid(self) -> bool:
-        """Checks if this entity is still in the SimEnv and valid"""
+        """Checks if this entity is still in the SimEnv and valid."""
         return (
             _debugger_is_active()
             or (datetime.utcnow() - self.last_sync_utc).total_seconds() < 3
@@ -734,8 +735,8 @@ class EntityBase(Generic[T]):
     #     self.__outDict__[k] = nparr
     #     self.__post_API_call__(k,duration)
 
-    def focus(self):
-        """Select and focus on this entity in the SimEnv viewport"""
+    def focus(self) -> None:
+        """Select and focus on this entity in the SimEnv viewport."""
         self._set_void("Focus")
 
     def __str__(self) -> str:
@@ -747,7 +748,7 @@ class EntityBase(Generic[T]):
         return self.entity_name
 
     def __eq__(self, other: object) -> bool:
-        """Two entities are equal if their unique names are equal. Comparison with str is also possible"""
+        """Two entities are equal if their unique names are equal. Comparison with str is also possible."""
         if isinstance(other, EntityBase):
             return self.entity_name == other.entity_name
         if isinstance(other, str):
@@ -755,7 +756,7 @@ class EntityBase(Generic[T]):
         return False
 
     def __hash__(self) -> int:
-        """Hash value of entities is based on their unique name str"""
+        """Hash value of entities is based on their unique name str."""
         return hash(self.entity_name)
 
     @staticmethod
@@ -776,8 +777,8 @@ class EntityBase(Generic[T]):
         return finfo.lineno
 
     @staticmethod
-    def _log_line_number():
-        """Send the currently running line number (of the main file) to the game"""
+    def _log_line_number() -> None:
+        """Send the currently running line number (of the main file) to the game."""
         no = EntityBase._get_line_number()
         if no < 0:
             return
@@ -786,8 +787,8 @@ class EntityBase(Generic[T]):
         nparr = NPArray(k, np.frombuffer(int.to_bytes(no, 4, "little"), dtype=np.uint8))
         EntityBase._set_out_data(k, nparr)
 
-    def log_debug(self, msg: str, col=Colors.White):
-        """Log a debug message into Python and into the SimEnv from this entity"""
+    def log_debug(self, msg: str, col=Colors.White) -> None:
+        """Log a debug message into Python and into the SimEnv from this entity."""
         k = self._build_name("LogDebug")
         jsonDict = {"msg": msg, "col": _parse_color(col)}
         bytes = json.dumps(jsonDict, ensure_ascii=False).encode("utf-8")
@@ -802,8 +803,8 @@ class EntityBase(Generic[T]):
         msg: str,
         col=Colors.White,
         log_level=VerbosityLevels.Important,
-    ):
-        """Log a debug message into Python and into the SimEnv"""
+    ) -> None:
+        """Log a debug message into Python and into the SimEnv."""
         jsonDict = {"msg": msg, "col": _parse_color(col), "level": int(log_level)}
         k = "SimEnvManager.Current.LogDebug"
         bytes = json.dumps(jsonDict, ensure_ascii=False).encode("utf-8")
@@ -813,8 +814,8 @@ class EntityBase(Generic[T]):
         EntityBase._log_line_number()
 
     @staticmethod
-    def _log_img_static(imgArr: np.ndarray):
-        """Display an image in the SimEnv log"""
+    def _log_img_static(imgArr: np.ndarray) -> None:
+        """Display an image in the SimEnv log."""
         k = "SimEnvManager.Current.LogImg"
 
         if len(imgArr.shape) == 2:
@@ -845,7 +846,7 @@ class EntityBaseStub(EntityBase[T]):
     pass
 
 
-def await_send(timeout=6):
+def await_send(timeout=6) -> None:
     start = 0.0
     last_send = EntityBase.last_send_at
     while last_send == EntityBase.last_send_at and start < timeout:
@@ -853,8 +854,8 @@ def await_send(timeout=6):
         start += 0.002
 
 
-def await_receive(timeout=6):
-    """Wait for one roundtrip between Python and the SimEnv
+def await_receive(timeout=6) -> None:
+    """Wait for one roundtrip between Python and the SimEnv.
 
     Args:
         timeout (int, optional): Defaults to 6 seconds.
@@ -867,7 +868,7 @@ def await_receive(timeout=6):
 
 
 def _find_all_entity_classes(modules: list[ModuleType]) -> list[type[EntityBase]]:
-    """Helper function to find and list all classes derived from entity base in the given modules"""
+    """Helper function to find and list all classes derived from entity base in the given modules."""
     entity_classes = []
     builtin_classes = dir(sys.modules["pyjop.EntityClasses"])
     for m in modules:
@@ -885,7 +886,7 @@ def _find_all_entity_classes(modules: list[ModuleType]) -> list[type[EntityBase]
 def _find_all_entity_classes_rec(
     module: ModuleType | None = None,
 ) -> list[type[EntityBase]]:
-    """Helper function to find and list all classes derived from entity base currently loaded in __main__"""
+    """Helper function to find and list all classes derived from entity base currently loaded in __main__."""
     if module is None:
         module = sys.modules["__main__"]
     entity_classes = []
@@ -893,17 +894,17 @@ def _find_all_entity_classes_rec(
 
     inner_modules = inspect.getmembers(module, inspect.ismodule)
 
-    for name, m in inner_modules:
+    for _name, m in inner_modules:
         if m.__name__.startswith("mypyjop"):
             entity_classes.extend(_find_all_entity_classes_rec(m))
     all_classes = list(set(entity_classes))
     all_names = [a.__name__ for a in all_classes]
-    dupes = set([x for x in all_names if all_names.count(x) > 1])
+    dupes = {x for x in all_names if all_names.count(x) > 1}
     assert len(dupes) == 0, f"duplicate entity classes found: {dupes}"
     return all_classes
 
 
-def _dispatch_events():
+def _dispatch_events() -> None:
     try:
         gt = float(
             EntityBase._in_dict["SimEnvManager.Current.SimTime"].array_data[0, 0, 0],
@@ -1063,7 +1064,7 @@ def _trace_debug_jop_call(frame: FrameType, event, arg):
     return _trace_debug_jop_call
 
 
-def debug_mode(bp: Sequence[int] = [], stepping=False, break_error=True, enabled=True):
+def debug_mode(bp: Sequence[int] = [], stepping=False, break_error=True, enabled=True) -> None:
     if not enabled:  ##disable
         sys.settrace(None)
         return
@@ -1085,7 +1086,7 @@ def _is_admin_process():
 
 
 def _debugger_is_active() -> bool:
-    """Return if the debugger is currently active"""
+    """Return if the debugger is currently active."""
     return hasattr(sys, "gettrace") and sys.gettrace() is not None
 
 
@@ -1173,13 +1174,12 @@ class DataModelBase(SimpleNamespace):
     def __init__(self) -> None:
         super().__init__()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the data model to its initial state."""
         self.__init__()
 
     def __repr__(self) -> str:
-        fields = ", ".join([f"{k}={v!s}" for k, v in self.__dict__.items()])
-        return fields
+        return ", ".join([f"{k}={v!s}" for k, v in self.__dict__.items()])
 
     def __str__(self) -> str:
         return self.__repr__()

@@ -22,10 +22,10 @@ class Vector3(np.ndarray):
         z: SupportsFloat | None = None,
     ) -> "Vector3":  # pylint: disable=arguments-differ
         def read_array(X, Y, Z) -> Vector3:
-            """Build Vector3 from another Vector3, [x, y, z], or x/y/z"""
+            """Build Vector3 from another Vector3, [x, y, z], or x/y/z."""
             if isinstance(X, cls):
                 return cls(X.x, X.y, X.z)
-            if isinstance(X, (list, tuple, np.ndarray)):
+            if isinstance(X, list | tuple | np.ndarray):
                 if isinstance(X, np.ndarray):
                     X = X.flatten()
                 if len(X) == 3:
@@ -46,16 +46,19 @@ class Vector3(np.ndarray):
                 xyz = np.r_[X, Y, Z]
                 xyz = xyz.astype(float)
                 return xyz.view(cls)
-            raise ValueError(
+            msg = (
                 "Invalid input for Vector3 - must be an instance "
                 "of a Vector3, a length-3 array, 3 scalars, or "
-                "nothing for [0., 0., 0.]",
+                "nothing for [0., 0., 0.]"
+            )
+            raise ValueError(
+                msg,
             )
 
         return read_array(x, y, z)
 
     def __array_wrap__(self, out_arr, context=None):  # pylint: disable=no-self-use, unused-argument
-        """This is called at the end of ufuncs
+        """This is called at the end of ufuncs.
 
         If the output is the wrong shape, return the ndarray view
         instead of vector view
@@ -65,7 +68,7 @@ class Vector3(np.ndarray):
         return out_arr
 
     def __array_finalize__(self, obj):
-        """This is called when initializing the vector
+        """This is called when initializing the vector.
 
         If the constructor is used, obj is None. If slicing is
         used, obj has the same class as self. In both these cases,
@@ -78,64 +81,63 @@ class Vector3(np.ndarray):
         if obj is None or obj.__class__ is Vector3:
             return
         if self.shape != (3,):
+            msg = "Invalid array to view as Vector3 - must be length-3 array."
             raise ValueError(
-                "Invalid array to view as Vector3 - must be length-3 array.",
+                msg,
             )
 
     @property
     def x(self) -> float:
-        """X or forwards-component of vector"""
+        """X or forwards-component of vector."""
         return self[0]
 
     @x.setter
-    def x(self, value: float):
+    def x(self, value: float) -> None:
         self[0] = value
 
     @property
     def y(self) -> float:
-        """Y or rightwards-component of vector"""
+        """Y or rightwards-component of vector."""
         return self[1]
 
     @y.setter
-    def y(self, value: float):
+    def y(self, value: float) -> None:
         self[1] = value
 
     @property
     def length(self):
-        """Length / size of vector"""
+        """Length / size of vector."""
         return float(np.sqrt(np.sum(self**2)))
 
     def dot(self, vec) -> float:
-        """Dot product with another vector"""
+        """Dot product with another vector."""
         if not isinstance(vec, self.__class__):
-            raise TypeError("Dot product operand must be a vector")
+            msg = "Dot product operand must be a vector"
+            raise TypeError(msg)
         return np.dot(self, vec)
 
     def cross(self, vec) -> "Vector3":
-        """Cross product with another vector"""
+        """Cross product with another vector."""
         if not isinstance(vec, self.__class__):
-            raise TypeError("Cross product operand must be a vector")
+            msg = "Cross product operand must be a vector"
+            raise TypeError(msg)
         return self.__class__(np.cross(self, vec))
 
     def parallel(self, vector) -> bool:
         """Return True if vectors are parallel to each other."""
-        if self.cross(vector).length < 0.000001:
-            return True
-        return False
+        return self.cross(vector).length < 1e-06
 
     def perpendicular(self, vector) -> bool:
         """Return True if vectors are perpendicular to each other."""
-        if abs(self.dot(vector)) < 0.000001:
-            return True
-        return False
+        return abs(self.dot(vector)) < 1e-06
 
     @property
     def z(self) -> float:
-        """Z or upwards-component of the vector"""
+        """Z or upwards-component of the vector."""
         return self[2]
 
     @z.setter
-    def z(self, value: float):
+    def z(self, value: float) -> None:
         self[2] = value
 
     @property
@@ -150,25 +152,28 @@ class Vector3(np.ndarray):
         return self.__str__()
 
     def as_normal(self) -> "Vector3":
-        """Return a new normal unit vector (normalized to length 1)"""
+        """Return a new normal unit vector (normalized to length 1)."""
         return self * 1.0 / (self.length)
 
     def angle(self, vec, unit="deg") -> float:
-        """Calculate the angle between two Vectors
+        """Calculate the angle between two Vectors.
 
         unit: unit for returned angle, either 'rad' or 'deg'. Defaults to 'deg'
         """
         if not isinstance(vec, self.__class__):
+            msg = f"Angle operand must be of class {self.__class__.__name__}"
             raise TypeError(
-                f"Angle operand must be of class {self.__class__.__name__}",
+                msg,
             )
         if unit not in ["deg", "rad"]:
-            raise ValueError("Only units of rad or deg are supported")
+            msg = "Only units of rad or deg are supported"
+            raise ValueError(msg)
 
         denom = self.length * vec.length
         if denom == 0:
+            msg = "Cannot calculate angle between zero-length vector(s)"
             raise ZeroDivisionError(
-                "Cannot calculate angle between zero-length vector(s)",
+                msg,
             )
 
         ang = np.arccos(self.dot(vec) / denom)
@@ -293,10 +298,10 @@ class Rotator3(np.ndarray):
         yaw: SupportsFloat = 0.0,
     ) -> "Rotator3":  # pylint: disable=arguments-differ
         def read_array(X, Y, Z) -> Rotator3:
-            """Build Rotator3 from another Rotator3"""
+            """Build Rotator3 from another Rotator3."""
             if isinstance(X, cls):
                 return cls(X.roll, X.pitch, X.yaw)
-            if isinstance(X, (list, tuple, np.ndarray)):
+            if isinstance(X, list | tuple | np.ndarray):
                 if isinstance(X, np.ndarray):
                     X = X.flatten()
                 if len(X) == 3:
@@ -309,16 +314,19 @@ class Rotator3(np.ndarray):
                 xyz = np.r_[X, Y, Z]
                 xyz = xyz.astype(float)
                 return xyz.view(cls)
-            raise ValueError(
+            msg = (
                 "Invalid input for Rotator3 - must be an instance "
                 "of a Rotator3, a length-3 array, 3 scalars, or "
-                "nothing for [0., 0., 0.]",
+                "nothing for [0., 0., 0.]"
+            )
+            raise ValueError(
+                msg,
             )
 
         return read_array(roll, pitch, yaw)
 
     def __array_wrap__(self, out_arr, context=None):  # pylint: disable=no-self-use, unused-argument
-        """This is called at the end of ufuncs
+        """This is called at the end of ufuncs.
 
         If the output is the wrong shape, return the ndarray view
         instead of vector view
@@ -328,7 +336,7 @@ class Rotator3(np.ndarray):
         return out_arr
 
     def __array_finalize__(self, obj):
-        """This is called when initializing the vector
+        """This is called when initializing the vector.
 
         If the constructor is used, obj is None. If slicing is
         used, obj has the same class as self. In both these cases,
@@ -341,35 +349,36 @@ class Rotator3(np.ndarray):
         if obj is None or obj.__class__ is Rotator3:
             return
         if self.shape != (3,):
+            msg = "Invalid array to view as Vector3 - must be length-3 array."
             raise ValueError(
-                "Invalid array to view as Vector3 - must be length-3 array.",
+                msg,
             )
 
     @property
     def roll(self) -> float:
-        """Roll (rotation about x-forward axis), 1st rotator component"""
+        """Roll (rotation about x-forward axis), 1st rotator component."""
         return self[0]
 
     @roll.setter
-    def roll(self, value: float):
+    def roll(self, value: float) -> None:
         self[0] = value
 
     @property
     def pitch(self) -> float:
-        """Pitch (rotation about rightwards-axis), 2nd rotator component"""
+        """Pitch (rotation about rightwards-axis), 2nd rotator component."""
         return self[1]
 
     @pitch.setter
-    def pitch(self, value: float):
+    def pitch(self, value: float) -> None:
         self[1] = value
 
     @property
     def yaw(self) -> float:
-        """Yaw (rotation about up-axis), 3rd rotator component"""
+        """Yaw (rotation about up-axis), 3rd rotator component."""
         return self[2]
 
     @yaw.setter
-    def yaw(self, value: float):
+    def yaw(self, value: float) -> None:
         self[2] = value
 
     def __str__(self) -> str:
@@ -488,7 +497,7 @@ class Rotator3(np.ndarray):
         SR = np.sin(roll_rad)
 
         # Build the rotation matrix
-        rotation_matrix = np.array(
+        return np.array(
             [
                 [CP * CY, SR * SP * CY - CR * SY, -(CR * SP * CY + SR * SY)],
                 [CP * SY, SR * SP * SY + CR * CY, CY * SR - CR * SP * SY],
@@ -496,7 +505,6 @@ class Rotator3(np.ndarray):
             ],
         )
 
-        return rotation_matrix
 
     @staticmethod
     def random() -> "Rotator3":

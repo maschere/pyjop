@@ -105,30 +105,30 @@ from sys import addaudithook
 
 # import re
 # _mypath = str(path.normpath(__file__)).replace("\\","/").split("/000_MyContent/External/")[0]
-def _sandbox_editor(event, arg):
+def _sandbox_editor(event, arg) -> None:
     if type(event) != str:
         raise
-    if event == "open":
-        if (
-            len(arg) > 1
-            and arg[1]
-            and arg[1] != "r"
-            and arg[1] != "rb"
-            and type(arg[0]) is not int
-        ):
-            if not (type(arg[0]) is str and arg[0].endswith(".matplotlib-lock")):
-                # print(event, arg)
-                raise PermissionError("Writing files forbidden.")
+    if event == "open" and (
+        len(arg) > 1
+        and arg[1]
+        and arg[1] != "r"
+        and arg[1] != "rb"
+        and type(arg[0]) is not int
+    ) and not (type(arg[0]) is str and arg[0].endswith(".matplotlib-lock")):
+        # print(event, arg)
+        msg = "Writing files forbidden."
+        raise PermissionError(msg)
 
-    if event == "socket.bind":
-        if arg[1][0] != "127.0.0.1":
-            # print(event, arg)
-            raise PermissionError("Socket binding not allowed")
+    if event == "socket.bind" and arg[1][0] != "127.0.0.1":
+        # print(event, arg)
+        msg = "Socket binding not allowed"
+        raise PermissionError(msg)
     if event == "socket.connect" and not (
         len(arg) > 1 and len(arg[1]) > 1 and arg[1][0] == "127.0.0.1"
     ):
         # print(event, arg)
-        raise PermissionError("Network connections not allowed")
+        msg = "Network connections not allowed"
+        raise PermissionError(msg)
     if event.split(".")[0] in ["subprocess", "shutil", "ftplib"]:
         # print(event, arg)
         raise PermissionError(
