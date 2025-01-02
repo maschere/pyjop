@@ -108,13 +108,17 @@ from sys import addaudithook
 def _sandbox_editor(event, arg) -> None:
     if type(event) != str:
         raise
-    if event == "open" and (
-        len(arg) > 1
-        and arg[1]
-        and arg[1] != "r"
-        and arg[1] != "rb"
-        and type(arg[0]) is not int
-    ) and not (type(arg[0]) is str and arg[0].endswith(".matplotlib-lock")):
+    if (
+        event == "open"
+        and (
+            len(arg) > 1
+            and arg[1]
+            and arg[1] != "r"
+            and arg[1] != "rb"
+            and type(arg[0]) is not int
+        )
+        and not (type(arg[0]) is str and arg[0].endswith(".matplotlib-lock"))
+    ):
         # print(event, arg)
         msg = "Writing files forbidden."
         raise PermissionError(msg)

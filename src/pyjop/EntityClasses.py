@@ -1600,7 +1600,11 @@ class AirSupplyDrop(EntityBase["AirSupplyDrop"]):
         """
         self._set_int("SetSuppliesLeft", new_supplies)
 
-    def editor_set_drop_randomization(self, uniform_range: Vector3, *args: float) -> None:
+    def editor_set_drop_randomization(
+        self,
+        uniform_range: Vector3,
+        *args: float,
+    ) -> None:
         """Add the specified uniform random vector to each supply drop location the player specifies.
 
         Args:
@@ -1820,7 +1824,10 @@ class Killzone(EntityBase["Killzone"]):
         """[Level Editor Only] Allow to change the custom entity filters or not. Does not reset the filter once it is set."""
         self._set_bool("AllowCustomFilter", is_allowed)
 
-    def on_kill(self, handler: Callable[["Killzone", float, BaseEventData], None]) -> None:
+    def on_kill(
+        self,
+        handler: Callable[["Killzone", float, BaseEventData], None],
+    ) -> None:
         """Event called when something enters this kill-zone and is destroyed.
 
         Args:
@@ -2990,7 +2997,12 @@ class LevelEditor(EntityBase["LevelEditor"]):
             True,
         )
 
-    def set_enabled(self, unique_name: str, is_enabled: bool, component_name="") -> None:
+    def set_enabled(
+        self,
+        unique_name: str,
+        is_enabled: bool,
+        component_name="",
+    ) -> None:
         """Completely enable or disable the named entity that you spawned from the level editor. if component_name is specified, only enable or disable that component.
 
         Args:
@@ -3072,7 +3084,12 @@ class LevelEditor(EntityBase["LevelEditor"]):
         """The the target label or target value from the feature data as assigned by set_feature_data()."""
         return self._get_string("FeatureTarget" + unique_name)
 
-    def apply_impulse(self, unique_name: str, impulse: Vector3, ignore_mass=True) -> None:
+    def apply_impulse(
+        self,
+        unique_name: str,
+        impulse: Vector3,
+        ignore_mass=True,
+    ) -> None:
         """Apply a physical impulse to the specified named entity. Entity must be simulating physics for this to have an effect.
 
         Args:
@@ -5427,7 +5444,10 @@ class DiceRoller(EntityBase["DiceRoller"]):
         """Roll all the dice specified in the roll string at once. Format is "xDy+nDm...", e.g. "2D6" or "1D4 + 3d20" or "2d12 + 1D6 + 3d8". Async function. Roll result will be returned in on_completed event handler."""
         self._set_string("RollDice", roll_string)
 
-    def on_completed(self, handler: Callable[["DiceRoller", float, list[int]], None]) -> None:
+    def on_completed(
+        self,
+        handler: Callable[["DiceRoller", float, list[int]], None],
+    ) -> None:
         """Event handler, called once all the rolled dice have landed and returns a list of dice face values sorted by dice type in ascending order (D4 to D20).
 
         Args:

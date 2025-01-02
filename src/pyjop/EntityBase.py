@@ -430,9 +430,7 @@ class EntityBase(Generic[T]):
 
         self.last_sync_utc = datetime.utcnow()
         EntityBase._entity_dict[fullname] = self
-        self.event_handlers: dict[str, list[Callable[[T, float, NPArray], None]]] = (
-            {}
-        )
+        self.event_handlers: dict[str, list[Callable[[T, float, NPArray], None]]] = {}
 
     def _post_API_call(self) -> None:
         # stuff to do after each api call
@@ -1064,7 +1062,12 @@ def _trace_debug_jop_call(frame: FrameType, event, arg):
     return _trace_debug_jop_call
 
 
-def debug_mode(bp: Sequence[int] = [], stepping=False, break_error=True, enabled=True) -> None:
+def debug_mode(
+    bp: Sequence[int] = [],
+    stepping=False,
+    break_error=True,
+    enabled=True,
+) -> None:
     if not enabled:  ##disable
         sys.settrace(None)
         return

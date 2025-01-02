@@ -505,7 +505,6 @@ class Rotator3(np.ndarray):
             ],
         )
 
-
     @staticmethod
     def random() -> "Rotator3":
         """Generate a random rotator with all components (roll,pitch,yaw) initialized at random between -180 and 180 degrees."""
