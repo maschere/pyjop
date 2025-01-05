@@ -19,7 +19,7 @@ URL = 'https://store.steampowered.com/app/2216770/JOY_OF_PROGRAMMING__Software_E
 EMAIL = 'jop@prof-scherer.de'
 AUTHOR = 'Maximilian Scherer'
 REQUIRES_PYTHON = '>=3.10.0'
-VERSION = '0.5.2'
+VERSION = '1.0.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
