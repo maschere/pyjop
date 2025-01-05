@@ -110,7 +110,7 @@ def _sandbox_editor(event,arg):
         if cmd not in ["ConnectRegistry", "LoadKey", "OpenKey", "OpenKey/result", "QueryValue", "QueryInfoKey", "EnumKey", "EnumValue"]:
             #print(event, arg)
             raise PermissionError('potentially dangerous, winreg forbidden'  + str(event))
-    if event.split('.')[0] == "os" and event.split('.')[1] not in ["listdir", "scandir", "add_dll_directory", "putenv", "walk", "unsetenv"]:
+    if event.split('.')[0] == "os" and event.split('.')[1] not in ["listdir", "scandir", "add_dll_directory", "putenv", "walk", "unsetenv","mkdir"]:
         #print(event, arg)
         if not (event == "os.remove" and arg[0].endswith(".matplotlib-lock")):
             raise PermissionError('potentially dangerous, os access forbidden: ' + str(event))

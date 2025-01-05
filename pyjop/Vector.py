@@ -197,6 +197,10 @@ class Vector3(np.ndarray):
     def __rsub__(self, other) -> "Vector3":
         return Vector3(super().__rsub__(other))
 
+    def __eq__(self, val) -> bool:
+        return (self.__sub__(val).length < 0.0001)
+    def __ne__(self, other):
+        return self.__eq__(other) == False
 
     def __pow__(self, val) -> "Vector3":
         return Vector3(super().__pow__(val))
