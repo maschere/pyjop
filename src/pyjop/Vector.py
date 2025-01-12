@@ -1,73 +1,121 @@
-# based on https://github.com/seequent/vectormath/blob/master/vectormath/vector.py licensed under MIT by seequent
-# and on https://github.com/allelos/vectors/blob/master/vectors/vectors.py licensed under MIT by
-from typing import SupportsFloat
+"""Vector."""  # noqa: N999
+
+# Based on https://github.com/seequent/vectormath/blob/master/vectormath/vector.py
+# licensed under MIT by seequent
+# and on https://github.com/allelos/vectors/blob/master/vectors/vectors.py
+# licensed under MIT
+
+from __future__ import annotations
+
+__all__: list[str] = [
+    "Vector3",
+    "Rotator3",
+    "TOLERANCE",
+]
+
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import numpy as np
+from numpy import typing as npt
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Literal, SupportsFloat
+
+    from typing_extensions import Self
 
 
-class Vector3(np.ndarray):
-    """3D vector defined from the origin in a left-handed coordinate system. x is forward, y is right, z is up."""
+TOLERANCE = 1e-6
 
-    UP: "Vector3"
-    RIGHT: "Vector3"
-    FORWARD: "Vector3"
-    DOWN: "Vector3"
-    LEFT: "Vector3"
-    BACKWARD: "Vector3"
 
-    def __new__(
-        cls,
-        x: list | tuple | np.ndarray | SupportsFloat = 0.0,
+T_Vector3 = TypeVar("T_Vector3", bound="Vector3")
+
+
+class Vector3(npt.NDArray[np.float64]):
+    """3D vector defined from the origin in a left-handed coordinate system.
+
+    x is forward, y is right, z is up.
+    """
+
+    UP: Vector3
+    RIGHT: Vector3
+    FORWARD: Vector3
+    DOWN: Vector3
+    LEFT: Vector3
+    BACKWARD: Vector3
+
+    def __new__(  # noqa: C901
+        cls: type[T_Vector3],
+        x: list[SupportsFloat]
+        | tuple[SupportsFloat]
+        | tuple[SupportsFloat, SupportsFloat]
+        | tuple[SupportsFloat, SupportsFloat, SupportsFloat]
+        | npt.NDArray[np.float64]
+        | SupportsFloat
+        | Vector3 = 0.0,
         y: SupportsFloat | None = None,
         z: SupportsFloat | None = None,
-    ) -> "Vector3":  # pylint: disable=arguments-differ
-        def read_array(X, Y, Z) -> Vector3:
+    ) -> T_Vector3:
+        """Create a new Vector3."""
+
+        def read_array(  # noqa: PLR0911
+            X: list[SupportsFloat]  # noqa: N803
+            | tuple[SupportsFloat]
+            | tuple[SupportsFloat, SupportsFloat]
+            | tuple[SupportsFloat, SupportsFloat, SupportsFloat]
+            | npt.NDArray[np.float64]
+            | SupportsFloat
+            | Vector3 = 0.0,
+            Y: SupportsFloat | None = None,  # noqa: N803
+            Z: SupportsFloat | None = None,  # noqa: N803
+        ) -> T_Vector3:
             """Build Vector3 from another Vector3, [x, y, z], or x/y/z."""
             if isinstance(X, cls):
                 return cls(X.x, X.y, X.z)
             if isinstance(X, list | tuple | np.ndarray):
                 if isinstance(X, np.ndarray):
-                    X = X.flatten()
-                if len(X) == 3:
-                    return cls(X[0], X[1], X[2])
-                if len(X) == 2:
-                    return cls(X[0], X[1], 0.0)
+                    X = X.flatten()  # noqa: N806
+                if len(X) == 3:  # noqa: PLR2004
+                    return cls(X[0], X[1], X[2])  # type: ignore[misc]
+                if len(X) == 2:  # noqa: PLR2004
+                    return cls(X[0], X[1], 0.0)  # type: ignore[misc]
                 if len(X) == 1:
                     return cls(X[0], X[0], X[0])
             if np.isscalar(X) and Y is None and Z is None:
                 xyz = np.r_[X, X, X]
                 xyz = xyz.astype(float)
-                return xyz.view(cls)
+                return cast(T_Vector3, xyz.view(cls))
             if np.isscalar(X) and np.isscalar(Y) and Z is None:
                 xyz = np.r_[X, Y, 0.0]
                 xyz = xyz.astype(float)
-                return xyz.view(cls)
+                return cast(T_Vector3, xyz.view(cls))
             if np.isscalar(X) and np.isscalar(Y) and np.isscalar(Z):
                 xyz = np.r_[X, Y, Z]
                 xyz = xyz.astype(float)
-                return xyz.view(cls)
+                return cast(T_Vector3, xyz.view(cls))
+            cls_name = cls.__name__
             msg = (
-                "Invalid input for Vector3 - must be an instance "
-                "of a Vector3, a length-3 array, 3 scalars, or "
+                f"Invalid input for {cls_name} - must be an instance "
+                f"of a {cls_name}, a length-3 array, 3 scalars, or "
                 "nothing for [0., 0., 0.]"
             )
-            raise ValueError(
-                msg,
-            )
+            raise ValueError(msg)
 
         return read_array(x, y, z)
 
-    def __array_wrap__(self, out_arr, context=None):  # pylint: disable=no-self-use, unused-argument
+    def __array_wrap__(  # type: ignore[override]
+        self,
+        out_arr: Self,
+        context: None = None,
+        return_scalar: bool = False,  # noqa: FBT001, FBT002
+    ) -> Self | npt.NDArray[np.float64]:
         """This is called at the end of ufuncs.
 
         If the output is the wrong shape, return the ndarray view
-        instead of vector view
+        instead of vector view.
         """
-        if out_arr.shape != (3,):
-            out_arr = out_arr.view(np.ndarray)
-        return out_arr
+        return out_arr.view(np.ndarray) if out_arr.shape != (3,) else out_arr
 
-    def __array_finalize__(self, obj):
+    def __array_finalize__(self, obj: Self | None | npt.NDArray[Any]) -> None:  # type: ignore[override]
         """This is called when initializing the vector.
 
         If the constructor is used, obj is None. If slicing is
@@ -78,18 +126,19 @@ class Vector3(np.ndarray):
         a different class than self. In this case, if the array has
         an invalid shape a ValueError is raised
         """
-        if obj is None or obj.__class__ is Vector3:
+        if obj is None or isinstance(obj, self.__class__):
             return
         if self.shape != (3,):
-            msg = "Invalid array to view as Vector3 - must be length-3 array."
-            raise ValueError(
-                msg,
+            msg = (
+                f"Invalid array to view as {self.__class__.__name__} "
+                "- must be length-3 array."
             )
+            raise ValueError(msg)
 
     @property
     def x(self) -> float:
         """X or forwards-component of vector."""
-        return self[0]
+        return cast(float, self[0])
 
     @x.setter
     def x(self, value: float) -> None:
@@ -98,155 +147,164 @@ class Vector3(np.ndarray):
     @property
     def y(self) -> float:
         """Y or rightwards-component of vector."""
-        return self[1]
+        return cast(float, self[1])
 
     @y.setter
     def y(self, value: float) -> None:
         self[1] = value
 
     @property
-    def length(self):
-        """Length / size of vector."""
-        return float(np.sqrt(np.sum(self**2)))
-
-    def dot(self, vec) -> float:
-        """Dot product with another vector."""
-        if not isinstance(vec, self.__class__):
-            msg = "Dot product operand must be a vector"
-            raise TypeError(msg)
-        return np.dot(self, vec)
-
-    def cross(self, vec) -> "Vector3":
-        """Cross product with another vector."""
-        if not isinstance(vec, self.__class__):
-            msg = "Cross product operand must be a vector"
-            raise TypeError(msg)
-        return self.__class__(np.cross(self, vec))
-
-    def parallel(self, vector) -> bool:
-        """Return True if vectors are parallel to each other."""
-        return self.cross(vector).length < 1e-06
-
-    def perpendicular(self, vector) -> bool:
-        """Return True if vectors are perpendicular to each other."""
-        return abs(self.dot(vector)) < 1e-06
-
-    @property
     def z(self) -> float:
         """Z or upwards-component of the vector."""
-        return self[2]
+        return cast(float, self[2])
 
     @z.setter
     def z(self, value: float) -> None:
         self[2] = value
 
     @property
-    def xy(self) -> "Vector3":
-        """Planar xy vector, returned as vector3 with z set to 0."""
+    def length(self) -> float:
+        """Length / size of vector."""
+        return float(np.sqrt(np.sum(self**2)))
+
+    def dot(self, vec: Self) -> float:  # type: ignore[override]
+        """Dot product with another vector."""
+        if not isinstance(vec, self.__class__):
+            msg = "Dot product operand must be a vector"
+            raise TypeError(msg)
+        return cast(float, np.dot(self, vec))
+
+    def cross(self, vec: Self) -> Vector3:
+        """Cross product with another vector."""
+        if not isinstance(vec, self.__class__):
+            msg = "Cross product operand must be a vector"
+            raise TypeError(msg)
+        return self.__class__(np.cross(self, vec))
+
+    def parallel(self, vector: Self) -> bool:
+        """Return if vectors are parallel to each other."""
+        return self.cross(vector).length < TOLERANCE
+
+    def perpendicular(self, vector: Self) -> bool:
+        """Return if vectors are perpendicular to each other."""
+        return abs(self.dot(vector)) < TOLERANCE
+
+    @property
+    def xy(self) -> Vector3:
+        """Planar xy vector, returned as Vector3 with z set to 0."""
         return Vector3(self[0], self[1], 0.0)
 
     def __str__(self) -> str:
+        """Return string representation of vector."""
         return f"x: {round(self.x, 8)} y: {round(self.y, 8)} z: {round(self.z, 8)}"
 
     def __repr__(self) -> str:
+        """Return string representation of vector."""
         return self.__str__()
 
-    def as_normal(self) -> "Vector3":
+    def as_normal(self) -> Vector3:
         """Return a new normal unit vector (normalized to length 1)."""
         return self * 1.0 / (self.length)
 
-    def angle(self, vec, unit="deg") -> float:
+    def angle(self, vec: Self, unit: Literal["rad", "deg"] = "deg") -> float:
         """Calculate the angle between two Vectors.
 
-        unit: unit for returned angle, either 'rad' or 'deg'. Defaults to 'deg'
+        Args:
+            vec: Vector3 to calculate the angle with
+            unit: Unit for returned angle, either 'rad' or 'deg'. Defaults to 'deg'.
         """
         if not isinstance(vec, self.__class__):
             msg = f"Angle operand must be of class {self.__class__.__name__}"
-            raise TypeError(
-                msg,
-            )
-        if unit not in ["deg", "rad"]:
+            raise TypeError(msg)
+        if unit not in {"deg", "rad"}:
             msg = "Only units of rad or deg are supported"
             raise ValueError(msg)
 
         denom = self.length * vec.length
         if denom == 0:
             msg = "Cannot calculate angle between zero-length vector(s)"
-            raise ZeroDivisionError(
-                msg,
-            )
+            raise ZeroDivisionError(msg)
 
-        ang = np.arccos(self.dot(vec) / denom)
+        ang: float = np.arccos(self.dot(vec) / denom)
         if unit == "deg":
             ang = ang * 180 / np.pi
         return ang
 
-    def __mul__(self, val) -> "Vector3":
-        return Vector3(super().__mul__(val))
+    def __mul__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__mul__(val))
 
-    def __rmul__(self, other) -> "Vector3":
-        return Vector3(super().__rmul__(other))
+    def __rmul__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__rmul__(other))
 
-    def __add__(self, val) -> "Vector3":
-        return Vector3(super().__add__(val))
+    def __add__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__add__(val))
 
-    def __radd__(self, other) -> "Vector3":
-        return Vector3(super().__radd__(other))
+    def __radd__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__radd__(other))
 
-    def __truediv__(self, val) -> "Vector3":
-        return Vector3(super().__truediv__(val))
+    def __truediv__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__truediv__(val))
 
-    def __rtruediv__(self, other) -> "Vector3":
-        return Vector3(super().__rtruediv__(other))
+    def __rtruediv__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__rtruediv__(other))
 
-    def __floordiv__(self, val) -> "Vector3":
-        return Vector3(super().__floordiv__(val))
+    def __floordiv__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__floordiv__(val))
 
-    def __rfloordiv__(self, other) -> "Vector3":
-        return Vector3(super().__rfloordiv__(other))
+    def __rfloordiv__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__rfloordiv__(other))
 
-    def __sub__(self, val) -> "Vector3":
-        return Vector3(super().__sub__(val))
+    def __sub__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__sub__(val))
 
-    def __rsub__(self, other) -> "Vector3":
-        return Vector3(super().__rsub__(other))
+    def __rsub__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__rsub__(other))
 
-    def __pow__(self, val) -> "Vector3":
-        return Vector3(super().__pow__(val))
+    def __pow__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__pow__(val))
 
-    def __rpow__(self, other) -> "Vector3":
-        return Vector3(super().__rpow__(other))
+    def __rpow__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__rpow__(other))
 
-    def __mod__(self, val) -> "Vector3":
-        return Vector3(super().__mod__(val))
+    def __mod__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__mod__(val))
 
-    def __rmod__(self, other) -> "Vector3":
-        return Vector3(super().__rmod__(other))
+    def __rmod__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__class__(super().__rmod__(other))
 
-    def rotate_vector(self, rot: "Rotator3", pivot: "Vector3" = (0, 0, 0)) -> "Vector3":
-        """Rotate this vector by a specified rotator around the specified pivot point."""
-        pivot = Vector3(pivot)
+    def rotate_vector(
+        self,
+        rot: Rotator3,
+        pivot: Vector3 | None = None,
+    ) -> Vector3:
+        """Rotate vector by specified rotator around specified pivot point.
+
+        Args:
+            rot: Rotator3 to rotate the vector by.
+            pivot: Vector3 to rotate around, defaults to (0, 0, 0).
+        """
+        pivot = Vector3(0, 0, 0) if pivot is None else Vector3(pivot)
         return rot.rotate_vector(self - pivot) + pivot
 
     def unrotate_vector(
         self,
-        rot: "Rotator3",
-        pivot: "Vector3" = (0, 0, 0),
-    ) -> "Vector3":
-        """Un-rotate this vector by a specified rotator around the specified pivot point."""
-        pivot = Vector3(pivot)
+        rot: Rotator3,
+        pivot: Vector3 | None = None,
+    ) -> Vector3:
+        """Un-rotate vector by specified rotator around specified pivot point."""
+        pivot = Vector3(0, 0, 0) if pivot is None else Vector3(pivot)
         return rot.unrotate_vector(self - pivot) + pivot
 
-    def find_lookat_rotation(self, target: "Vector3") -> "Rotator3":
-        """Find a rotator that would rotate a forward unit vector (1,0,0) to look at at the specified target vector (point) from this vector (point)."""
+    def find_lookat_rotation(self, target: Vector3) -> Rotator3:
+        """Find a rotator that would rotate a forward unit vector (1,0,0) to look at at the specified target vector (point) from this vector (point)."""  # noqa: E501
         return Rotator3.make_from_xforward(target - self)
 
-    def as_orientation_rotator(self) -> "Rotator3":
-        """Create a rotator that corresponds to the direction in which this vectors points. Roll cannot be determined from this and will be zero."""
+    def as_orientation_rotator(self) -> Rotator3:
+        """Create a rotator that corresponds to the direction in which this vectors points. Roll cannot be determined from this and will be zero."""  # noqa: E501
         return Rotator3.make_from_normal(self)
 
     @staticmethod
-    def distance_to_line(a: "Vector3", b: "Vector3", c: "Vector3") -> float:
+    def distance_to_line(a: Vector3, b: Vector3, c: Vector3) -> float:
         """Return the distance of point c from the line between a and b.
 
         Args:
@@ -257,19 +315,20 @@ class Vector3(np.ndarray):
         return (c - a).cross(c - b).length / (b - a).length
 
     @staticmethod
-    def random(
-        xmin=-1.0,
-        xmax=1.0,
-        ymin=-1.0,
-        ymax=1.0,
-        zmin=-1.0,
-        zmax=1.0,
-    ) -> "Vector3":
+    def random(  # noqa: PLR0913
+        xmin: float = -1.0,
+        xmax: float = 1.0,
+        ymin: float = -1.0,
+        ymax: float = 1.0,
+        zmin: float = -1.0,
+        zmax: float = 1.0,
+    ) -> Vector3:
         """Generate a new random vector within the specified bounds."""
+        rng = np.random.default_rng()
         return Vector3(
-            np.random.uniform(xmin, xmax),
-            np.random.uniform(ymin, ymax),
-            np.random.uniform(zmin, zmax),
+            rng.uniform(xmin, xmax),
+            rng.uniform(ymin, ymax),
+            rng.uniform(zmin, zmax),
         )
 
 
@@ -284,19 +343,19 @@ Vector3.BACKWARD = Vector3(-1, 0, 0)
 class Rotator3(np.ndarray):
     """3d rotator defined as roll, pitch, yaw in degrees around the forward x-axis."""
 
-    TURN_LEFT: "Rotator3"
-    TURN_RIGHT: "Rotator3"
-    LOOK_UP: "Rotator3"
-    LOOK_DOWN: "Rotator3"
-    ROLL_CLOCKWISE: "Rotator3"
-    ROLL_COUNTER_CLOCKWISE: "Rotator3"
+    TURN_LEFT: Rotator3
+    TURN_RIGHT: Rotator3
+    LOOK_UP: Rotator3
+    LOOK_DOWN: Rotator3
+    ROLL_CLOCKWISE: Rotator3
+    ROLL_COUNTER_CLOCKWISE: Rotator3
 
     def __new__(
         cls,
         roll: list | tuple | np.ndarray | SupportsFloat = 0.0,
         pitch: SupportsFloat = 0.0,
         yaw: SupportsFloat = 0.0,
-    ) -> "Rotator3":  # pylint: disable=arguments-differ
+    ) -> Rotator3:  # pylint: disable=arguments-differ
         def read_array(X, Y, Z) -> Rotator3:
             """Build Rotator3 from another Rotator3."""
             if isinstance(X, cls):
@@ -401,11 +460,11 @@ class Rotator3(np.ndarray):
         """Convert this rotator to a normal unit vector (normalized to length 1) facing in the direction of this rotator."""
         return Vector3.FORWARD.rotate_vector(self).as_normal()
 
-    def get_opposite(self) -> "Rotator3":
+    def get_opposite(self) -> Rotator3:
         """Get a rotator that faces in the opposite direction of this rotator."""
         return Rotator3.make_from_xforward(self.as_normal() * -1.0)
 
-    def get_unwinded(self) -> "Rotator3":
+    def get_unwinded(self) -> Rotator3:
         """Unwind this rotator to make sure all angles are between -180 and 180."""
         unwind = self.copy()
         for i in range(3):
@@ -415,50 +474,50 @@ class Rotator3(np.ndarray):
                 unwind[i] += 360.0
         return unwind
 
-    def __mul__(self, val) -> "Rotator3":
+    def __mul__(self, val) -> Rotator3:
         return Rotator3(super().__mul__(val))
 
-    def __rmul__(self, other) -> "Rotator3":
+    def __rmul__(self, other) -> Rotator3:
         return Rotator3(super().__rmul__(other))
 
-    def __add__(self, val) -> "Rotator3":
+    def __add__(self, val) -> Rotator3:
         return Rotator3(super().__add__(val))
 
-    def __radd__(self, other) -> "Rotator3":
+    def __radd__(self, other) -> Rotator3:
         return Rotator3(super().__radd__(other))
 
-    def __truediv__(self, val) -> "Rotator3":
+    def __truediv__(self, val) -> Rotator3:
         return Rotator3(super().__truediv__(val))
 
-    def __rtruediv__(self, other) -> "Rotator3":
+    def __rtruediv__(self, other) -> Rotator3:
         return Rotator3(super().__rtruediv__(other))
 
-    def __floordiv__(self, val) -> "Rotator3":
+    def __floordiv__(self, val) -> Rotator3:
         return Rotator3(super().__floordiv__(val))
 
-    def __rfloordiv__(self, other) -> "Rotator3":
+    def __rfloordiv__(self, other) -> Rotator3:
         return Rotator3(super().__rfloordiv__(other))
 
-    def __sub__(self, val) -> "Rotator3":
+    def __sub__(self, val) -> Rotator3:
         return Rotator3(super().__sub__(val))
 
-    def __rsub__(self, other) -> "Rotator3":
+    def __rsub__(self, other) -> Rotator3:
         return Rotator3(super().__rsub__(other))
 
-    def __pow__(self, val) -> "Rotator3":
+    def __pow__(self, val) -> Rotator3:
         return Rotator3(super().__pow__(val))
 
-    def __rpow__(self, other) -> "Rotator3":
+    def __rpow__(self, other) -> Rotator3:
         return Rotator3(super().__rpow__(other))
 
-    def __mod__(self, val) -> "Rotator3":
+    def __mod__(self, val) -> Rotator3:
         return Rotator3(super().__mod__(val))
 
-    def __rmod__(self, other) -> "Rotator3":
+    def __rmod__(self, other) -> Rotator3:
         return Rotator3(super().__rmod__(other))
 
     @staticmethod
-    def make_from_normal(v: Vector3) -> "Rotator3":
+    def make_from_normal(v: Vector3) -> Rotator3:
         """Create a rotator that corresponds to the direction in which the specified vectors points. Roll cannot be determined from this and will be zero."""
         rot = Rotator3(
             0,
@@ -468,7 +527,7 @@ class Rotator3(np.ndarray):
         return rot.get_unwinded()
 
     @staticmethod
-    def make_from_xforward(v: Vector3) -> "Rotator3":
+    def make_from_xforward(v: Vector3) -> Rotator3:
         newx = v.as_normal()
         up = Vector3.UP if abs(newx.z) < 1.0 - 1e-4 else Vector3.FORWARD
         newy = up.cross(newx).as_normal()
@@ -506,7 +565,7 @@ class Rotator3(np.ndarray):
         )
 
     @staticmethod
-    def random() -> "Rotator3":
+    def random() -> Rotator3:
         """Generate a random rotator with all components (roll,pitch,yaw) initialized at random between -180 and 180 degrees."""
         return Rotator3(np.random.uniform(-180, 180, size=(3,)))
 

@@ -48,6 +48,7 @@ coverage = "^7.2.7"
 pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
 pytest-benchmark = "^4.0.0"
+hypothesis = "^6.123.2"
 
 [tool.poetry.group.benchmarking.dependencies]
 asv = "^0.5.1"

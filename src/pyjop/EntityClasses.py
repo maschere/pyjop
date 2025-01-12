@@ -5147,7 +5147,7 @@ class MessageSniffer(EntityBase["MessageSniffer"]):
         """
         return self._get_string("CipherText")
 
-    def try_decrypt(self, substitution_key: int):
+    def try_decrypt(self, substitution_key: int) -> str:
         """Try to decode the intercepted message and get the decoded result.
 
         Args:
@@ -5919,7 +5919,7 @@ class PostProcessVolume(EntityBase["PostProcessVolume"]):
         """Set the bounds of this post process volume. Everything inside is impacted by the post process settings. Negative bounds mean unbounded volume to affect everything."""
         self._set_vector3d("setBounds", bounds, add_args=args)
 
-    def editor_set_blend_radius(self, radius) -> None:
+    def editor_set_blend_radius(self, radius: float) -> None:
         self._set_float("setBlendRadius", radius)
 
     def editor_set_color_saturation(self, value: Vector3, *args: float) -> None:
