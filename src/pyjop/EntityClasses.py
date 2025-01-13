@@ -3656,7 +3656,8 @@ class DataExchange(EntityBase["DataExchange"]):
         if key in all_dat:
             return all_dat[key]
         print(
-            f"Key '{key}' not found. Valid keys: {self.get_keys()}", col=Colors.Yellow
+            f"Key '{key}' not found. Valid keys: {self.get_keys()}",
+            col=Colors.Yellow,
         )
         return ""
 
