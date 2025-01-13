@@ -1,0 +1,151 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "pyjop"
+version = "1.0.0"
+description = "Official Python interface for JOY OF PROGRAMMING."
+authors = ["Maximilian Scherer <jop@prof-scherer.de>"]
+license = "MIT"
+readme = "docs/README.md"
+packages = [{include = "pyjop", from = "src"}]
+homepage = "https://github.com/maschere/pyjop"
+repository = "https://github.com/maschere/pyjop"
+documentation = "https://pyjop.readthedocs.io"
+classifiers = [
+  # Get more from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+numpy = "^2.2.1"
+matplotlib = "^3.10.0"
+pandas = "^2.2.3"
+scipy = "^1.14.1"
+scikit-image = "^0.25.0"
+pillow = "^11.1.0"
+scikit-learn = "^1.6.0"
+psutil = "^6.1.1"
+simple-pid = "^2.0.1"
+statsmodels = "^0.14.4"
+opencv-contrib-python-headless = "^4.10.0.84"
+nicegui = "1.1.5"
+gymnasium = "^1.0.0"
+neatpy = "^0.5.0"
+mypy = "^1.14.1"
+tinygrad = "^0.10.0"
+pyopencl = "^2024.3"
+
+[tool.poetry.group.tests.dependencies]
+coverage = "^7.2.7"
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+pytest-benchmark = "^4.0.0"
+hypothesis = "^6.123.2"
+
+[tool.poetry.group.benchmarking.dependencies]
+asv = "^0.5.1"
+virtualenv = "^20.24.3"
+
+[tool.poetry.group.docs.dependencies]
+
+[tool.poetry.group.typing.dependencies]
+# Typing stubs go here
+mypy = "^1.4.0"
+nox = "^2023.4.22"
+pytest = "^7.4.0"
+pytest-benchmark = "^4.0.0"
+
+[tool.poetry.group.linting.dependencies]
+ruff = "^0.5.0"
+
+[tool.poetry.group.pre-commit.dependencies]
+pre-commit = "^3.3.3"
+
+[tool.poetry.group.dev.dependencies]
+nox = "^2023.4.22"
+python-semantic-release = "^8.0.2"
+
+[tool.poetry.urls]
+"Changelog" = "https://github.com/maschere/pyjop/blob/main/docs/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/maschere/pyjop/issues"
+
+[tool.ruff]
+# https://beta.ruff.rs/docs/rules
+line-length = 88  # Default
+force-exclude = true
+src = ["src"]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D203",
+  "D213",
+]
+unfixable = ["ERA001"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["id", "type"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.mypy]
+files = ["src", "docs", "tests", "noxfile.py"]
+exclude = [".venv"]
+enable_error_code = [
+  "ignore-without-code"
+]
+strict = true
+warn_unused_ignores = false  # true
+show_column_numbers = true
+# show_error_context = true
+# pretty = true
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:tool.poetry.version"]
+build_command = """
+  python -m pip install build~=0.10.0
+  python -m build .
+"""
+
+[tool.semantic_release.changelog]
+changelog_file = "docs/CHANGELOG.md"
+
+[tool.semantic_release.branches.main]
+match = "main"
+
+[tool.semantic_release.branches.rc]
+match = "rc"
+prerelease = true
+prerelease_token = "rc"
+
+[tool.coverage.run]
+source = ["src"]
+command_line = "-m pytest"
+
+[tool.pytest.ini_options]
+# addopts = "--cov"
+
+[tool.cruft]
+skip = [
+  "src",
+  "tests",
+  "benchmarks",
+  ".asv",
+  "poetry.lock",
+]

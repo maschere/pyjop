@@ -1,0 +1,26 @@
+{
+  "template": "https://github.com/MicaelJarniac/crustypy",
+  "commit": "81797f153c8d485ec930eaeff90cae60509c1ec6",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Maximilian Scherer",
+      "email": "jop@prof-scherer.de",
+      "github_username": "maschere",
+      "year": "2025",
+      "project_name": "pyjop",
+      "project_slug": "pyjop",
+      "project_distribution_name": "pyjop",
+      "project_short_description": "Official Python interface for JOY OF PROGRAMMING.",
+      "version": "0.5.2",
+      "shields_url": "https://img.shields.io",
+      "discord_invite": "2ZrdzkNeBP",
+      "report_method": "jop@prof-scherer.de",
+      "__github_path": "maschere/pyjop",
+      "__github_url": "https://github.com/maschere/pyjop",
+      "__readthedocs_name": "pyjop",
+      "_template": "https://github.com/MicaelJarniac/crustypy"
+    }
+  },
+  "directory": null
+}
