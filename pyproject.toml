@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "pyjop"
-version = "0.5.2"
+version = "1.0.0"
 description = "Official Python interface for JOY OF PROGRAMMING."
 authors = ["Maximilian Scherer <jop@prof-scherer.de>"]
 license = "MIT"

@@ -10,7 +10,8 @@ from __future__ import annotations
 __all__: list[str] = [
     "Vector3",
     "Rotator3",
-    "TOLERANCE",
+    "TOLERANCE_ANGLE",
+    "TOLERANCE_EQ",
 ]
 
 from typing import TYPE_CHECKING, TypeVar, cast
@@ -24,7 +25,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Self
 
 
-TOLERANCE = 1e-6
+TOLERANCE_ANGLE = 1e-6
+TOLERANCE_EQ = 1e-4
 
 
 T_Vector3 = TypeVar("T_Vector3", bound="Vector3")
@@ -183,11 +185,11 @@ class Vector3(npt.NDArray[np.float64]):
 
     def parallel(self, vector: Self) -> bool:
         """Return if vectors are parallel to each other."""
-        return self.cross(vector).length < TOLERANCE
+        return self.cross(vector).length < TOLERANCE_ANGLE
 
     def perpendicular(self, vector: Self) -> bool:
         """Return if vectors are perpendicular to each other."""
-        return abs(self.dot(vector)) < TOLERANCE
+        return abs(self.dot(vector)) < TOLERANCE_ANGLE
 
     @property
     def xy(self) -> Vector3:
@@ -259,6 +261,12 @@ class Vector3(npt.NDArray[np.float64]):
 
     def __rsub__(self, other) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
         return self.__class__(super().__rsub__(other))
+
+    def __eq__(self, val) -> bool:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return self.__sub__(val).length < TOLERANCE_EQ
+
+    def __ne__(self, other) -> bool:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
+        return not self.__eq__(other)
 
     def __pow__(self, val) -> Self:  # type: ignore[no-untyped-def, override]  # noqa: ANN001, D105
         return self.__class__(super().__pow__(val))

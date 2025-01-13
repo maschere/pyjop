@@ -161,6 +161,7 @@ def _sandbox_editor(event, arg) -> None:
         "putenv",
         "walk",
         "unsetenv",
+        "mkdir",
     ]:
         # print(event, arg)
         if not (event == "os.remove" and arg[0].endswith(".matplotlib-lock")):

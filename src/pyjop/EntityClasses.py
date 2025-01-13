@@ -1141,6 +1141,7 @@ def show_nicegui(title="My Nice GUI", width=800, height=600) -> None:
         reload=False,
         viewport=f"width={width}, height={height}, initial-scale=1",
         title=title,
+        uvicorn_logging_level="critical",
     )
 
     # ui.run(host="127.0.0.1",port=18085,show=False, dark=True, reload=False, viewport="width=800, height=600, initial-scale=1")
@@ -3654,6 +3655,9 @@ class DataExchange(EntityBase["DataExchange"]):
         all_dat = self._get_json("Data")
         if key in all_dat:
             return all_dat[key]
+        print(
+            f"Key '{key}' not found. Valid keys: {self.get_keys()}", col=Colors.Yellow
+        )
         return ""
 
     def load_big_data(self, key: str) -> BytesIO:
@@ -4685,31 +4689,35 @@ class TrafficLight(EntityBase["TrafficLight"]):
 
 
 class VacuumRobot(EntityBase["VacuumRobot"]):
-    """An autonomous vacuum robot."""
+    """A programmable vacuum robot. Does not have any sensors itself."""
 
-    def get_grid_map(self) -> np.ndarray:
-        """Get a 7x7 grid based map around the robot's current position and orientation that indicates obstacles and traversable cells. Each grid cell corresponds to 0.1m x 0.1m."""
-        return self._get_array_raw("GridMap", [7, 7, 1])
+    def move(self, forwards: int = 1):
+        """Move 1 step (10cm) instantly in forwards or backwards direction.
 
-    def get_location(self) -> Vector3:
-        """Get the robots own location in XYZ in world space."""
-        return self._get_vector3d("Location")
+        Args:
+            forwards (int): Defaults to 1 for forwards step. Set to -1 for backwards step.
+        """
+        return self._set_int("Move", forwards)
 
-    def get_orientation(self) -> float:
-        """Get the robots own yaw orientation in world space."""
-        return self._get_float("Orientation")
+    def turn(self, clockwise: int = 1):
+        """Instantly turn 90° clockwise or counter-clockwise.
 
-    def get_collision_events(self) -> list["CollisionEvent"]:
-        """Get all collision events that happened within the last 5 seconds."""
-        return [CollisionEvent(d) for d in self._get_json("Collisions")["items"]]
+        Args:
+            clockwise (int): Defaults to 1 for clockwise rotation. Set to -1 for counter-clockwise rotation.
+        """
+        return self._set_int("Turn", clockwise)
 
-    def set_left_wheel_power(self, power: float) -> None:
-        """Set the relative power of the left wheel in [-1...1]."""
-        self._set_float("LeftWheelPower", power)
+    def get_dirt_count(self) -> int:
+        """Get the amount of dirt collected by this robot."""
+        return self._get_int("DirtCount")
 
-    def set_right_wheel_power(self, power: float) -> None:
-        """Set the relative power of the right wheel in [-1...1]."""
-        self._set_float("RightWheelPower", power)
+    def get_bumper_front(self) -> bool:
+        """Returns true if the front of the robot collided with a wall with the last move."""
+        return self._get_bool("BumperFront")
+
+    def get_bumper_back(self) -> bool:
+        """Returns true if the back of the robot collided with a wall with the last move."""
+        return self._get_bool("BumperBack")
 
 
 class ColorCubePuzzle(EntityBase["ColorCubePuzzle"]):

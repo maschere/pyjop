@@ -571,7 +571,7 @@ class SpawnableEntities(StrEnum):
     # TrafficLight=auto()
     TriggerZone = auto()
     TurnableConveyorBelt = auto()
-    # VacuumRobot=auto()
+    VacuumRobot = auto()
     VoxelBuilder = auto()
     AirliftCrane = auto()
     PlayingCard = auto()
@@ -652,6 +652,7 @@ class SpawnableMeshes(StrEnum):
     Bottle2 = auto()
     Bottle3 = auto()
     WoodenBox = auto()
+    DirtPile = auto()
 
 
 @unique

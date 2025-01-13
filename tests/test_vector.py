@@ -12,7 +12,7 @@ import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
 
-from pyjop.Vector import TOLERANCE, Rotator3, Vector3
+from pyjop.Vector import TOLERANCE_ANGLE, Rotator3, Vector3
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import Literal
@@ -308,7 +308,7 @@ class TestVector:
             v2: Vector3,
         ) -> None:
             """Test if two Vector3 objects are parallel."""
-            assert v.parallel(v2) == (v.cross(v2).length < TOLERANCE)
+            assert v.parallel(v2) == (v.cross(v2).length < TOLERANCE_ANGLE)
 
         @pytest.mark.parametrize(
             ("v1", "v2", "expected"),
@@ -340,7 +340,7 @@ class TestVector:
             v2: Vector3,
         ) -> None:
             """Test if two Vector3 objects are perpendicular."""
-            assert v.perpendicular(v2) == (abs(v.dot(v2)) < TOLERANCE)
+            assert v.perpendicular(v2) == (abs(v.dot(v2)) < TOLERANCE_ANGLE)
 
         @pytest.mark.parametrize(
             ("v1", "v2", "expected"),
