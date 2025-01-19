@@ -3474,7 +3474,7 @@ class DataExchange(EntityBase["DataExchange"]):
             key (str): short key to save the data under
             dat (bytes): raw data as byte sequence
         """
-        if self.get_data(key):
+        if key in self.get_keys():
             raise JoyfulException("The names of big data sets should be different from data already stored in the exchange.")
         self._set_bytes("storeBigData" + key, dat, True)
 
@@ -3499,16 +3499,21 @@ class DataExchange(EntityBase["DataExchange"]):
             args: positional arguments to pass to the function
             kwargs: named parameters to pass to the function
         """
-        old_dat = self.get_data("rpc_result")
+        old_dat = ""
+        new_dat = ""
+        if "rpc_result" in self.get_keys():
+            old_dat = self.get_data("rpc_result")
+            new_dat = old_dat
         start = time.time()
         js = RPCInvoke(func_name,args, kwargs)
         self._set_json("rpc", js.__dict__)
         sleep()
-        while self.get_data("rpc_result") == old_dat and start < time.time()-3:
+        while new_dat == old_dat and start < time.time()-3:
+            if "rpc_result" in self.get_keys():
+                new_dat = self.get_data("rpc_result")
             sleep()
-        dat = self.get_data("rpc_result")
-        if dat and dat["func_name"] == func_name:
-            return dat["value"]
+        if new_dat and new_dat["func_name"] == func_name:
+            return new_dat["value"]
         else:
             return ""
 
