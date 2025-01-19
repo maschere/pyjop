@@ -4437,33 +4437,77 @@ class TrafficLight(EntityBase["TrafficLight"]):
 class VacuumRobot(EntityBase["VacuumRobot"]):
     """A programmable vacuum robot. Does not have any sensors itself."""
 
-    def move(self, forwards:int=1):
+    def move(self, forwards:int = 1):
         """Move 1 step (10cm) instantly in forwards or backwards direction.
 
         Args:
             forwards (int): Defaults to 1 for forwards step. Set to -1 for backwards step.
-        """
-        return self._set_int("Move",forwards)
 
-    def turn(self, clockwise:int=1):
+        Example:
+            >>>
+            vac = VacuumRobot.first()
+            #three steps forwards
+            vac.move(1)
+            vac.move(1)
+            vac.move(1)
+            #one step back
+            vac.move(-1)
+        """
+        return self._set_int("Move", forwards)
+
+    def turn(self, clockwise:int = 1):
         """Instantly turn 90° clockwise or counter-clockwise.
 
         Args:
             clockwise (int): Defaults to 1 for clockwise rotation. Set to -1 for counter-clockwise rotation.
+
+        Example:
+            >>>
+            vac = VacuumRobot.first()
+            #turn clockwise in circle
+            for i in range(4):
+                vac.turn(1)
         """
-        return self._set_int("Turn",clockwise)
+        return self._set_int("Turn", clockwise)
 
     def get_dirt_count(self) -> int:
         """Get the amount of dirt collected by this robot.
+
+        Example:
+            >>>
+            vac = VacuumRobot.first()
+            print(vac.get_dirt_count())
         """
         return self._get_int("DirtCount")
 
     def get_bumper_front(self) -> bool:
         """Returns true if the front of the robot collided with a wall with the last move.
+
+        Example:
+            >>>
+            vac = VacuumRobot.first()
+            #move forward until collision
+            while True:
+                vac.move(1)
+                sleep() # wait for collision detector to update
+                if vac.get_bumper_front():
+                    break
+            print("stopped at collision")         
         """
         return self._get_bool("BumperFront")
     def get_bumper_back(self) -> bool:
         """Returns true if the back of the robot collided with a wall with the last move.
+
+        Example:
+            >>>
+            vac = VacuumRobot.first()
+            #move backward until collision
+            while True:
+                vac.move(-1)
+                sleep() # wait for collision detector to update
+                if vac.get_bumper_back():
+                    break
+            print("stopped at collision")  
         """
         return self._get_bool("BumperBack")
 
